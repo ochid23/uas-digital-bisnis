@@ -78,12 +78,12 @@
             @forelse($events as $event)
             <div class="group bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-2xl transition-all duration-300 overflow-hidden">
                 <div class="relative overflow-hidden aspect-[3/4]">
-                    <img src="{{ $event->thumbnail ? asset('storage/' . $event->thumbnail) : 'https://placehold.co/400x600' }}" 
+                    <img src="{{ ($event->poster_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($event->poster_path)) ? asset('storage/' . $event->poster_path) : 'https://placehold.co/400x600' }}" 
                          alt="{{ $event->title }}"
                          class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
                     
                     <div class="absolute top-4 left-4 px-3 py-1 bg-white/90 backdrop-blur rounded-lg text-xs font-bold uppercase text-indigo-600">
-                        {{ $event->category->name }}
+                        {{ $event->category->name ?? '-' }}
                     </div>
                 </div>
                 
@@ -104,7 +104,7 @@
                         <span class="text-2xl font-black text-indigo-600">
                             {{ $event->price == 0 ? 'Gratis' : 'Rp ' . number_format($event->price, 0, ',', '.') }}
                         </span>
-                        <a href="{{ url('event/' . $event->id) }}"
+                        <a href="{{ route('events.show', $event->id) }}"
                             class="px-5 py-2 bg-indigo-50 text-indigo-600 rounded-xl font-bold hover:bg-indigo-600 hover:text-white transition">
                             Lihat Detail
                         </a>
@@ -127,15 +127,12 @@
         </div>
         
         <div class="flex flex-wrap justify-center items-end gap-10 opacity-70">
-            @forelse($partners as $partner)
+            @forelse($partners ?? [] as $partner)
                 <div class="w-32 md:w-40 flex flex-col items-center justify-center grayscale hover:grayscale-0 transition duration-300 gap-3">
-                    
                     <img src="{{ $partner->logo_url }}" alt="{{ $partner->name }}" class="max-h-16 object-contain">
-                    
                     <span class="text-sm font-bold text-slate-600 text-center leading-tight">
                         {{ $partner->name }}
                     </span>
-                    
                 </div>
             @empty
                 <p class="text-sm text-slate-400">Belum ada partner yang ditambahkan.</p>

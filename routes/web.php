@@ -7,11 +7,11 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\EventController as EventAdminController;
 use App\Http\Controllers\Admin\CategoryController; 
 use App\Http\Controllers\PartnerController;        
-use App\Http\Controllers\Admin\AuthController; // Tambahkan import AuthController
+use App\Http\Controllers\Admin\AuthController;
 
 // Rute User Area (Halaman Publik)
 Route::get('/', [HomeController::class, 'index'])->name('home');
-Route::get('/event/{id}', [EventController::class,'show'])->name('events.show');
+Route::get('/events/{event}', [EventController::class,'show'])->name('events.show');
 Route::get('/checkout', [EventController::class,'checkout'])->name('checkout');
 Route::get('/my-ticket', [EventController::class, 'ticket'])->name('ticket');
 
@@ -34,8 +34,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
     // Mengamankan Route Administrasi di balik tembok (Middleware)
     Route::middleware(['auth', 'admin'])->group(function () {
         
-        
-    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('/transactions', [DashboardController::class,'indexTransaction'])->name('transactions.index');
         
         Route::resource('events', EventAdminController::class);
