@@ -8,12 +8,17 @@ use App\Http\Controllers\Admin\EventController as EventAdminController;
 use App\Http\Controllers\Admin\CategoryController; 
 use App\Http\Controllers\PartnerController;        
 use App\Http\Controllers\Admin\AuthController;
+use App\Http\Controllers\Admin\TransactionController; // Tambahan untuk Langkah 4 & 5
 
 // Rute User Area (Halaman Publik)
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/events/{event}', [EventController::class,'show'])->name('events.show');
 Route::get('/checkout', [EventController::class,'checkout'])->name('checkout');
 Route::get('/my-ticket', [EventController::class, 'ticket'])->name('ticket');
+
+// Rute Checkout (Sesuai Langkah 4)
+Route::get('/checkout/{event}', [App\Http\Controllers\CheckoutController::class, 'create'])->name('checkout.create');
+Route::post('/checkout/{event}', [App\Http\Controllers\CheckoutController::class, 'store'])->name('checkout.store');
 
 // Redirect login default
 Route::get('/login', function () {
@@ -35,7 +40,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::middleware(['auth', 'admin'])->group(function () {
         
         Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
-        Route::get('/transactions', [DashboardController::class,'indexTransaction'])->name('transactions.index');
+        
+        // PERBAIKAN LANGKAH 4: Arahkan ke TransactionController
+        Route::get('transactions', [TransactionController::class, 'index'])->name('transactions.index');
         
         Route::resource('events', EventAdminController::class);
         
@@ -48,5 +55,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/partners/{id}/edit', [PartnerController::class, 'edit'])->name('partners.edit');
         Route::put('/partners/{id}', [PartnerController::class, 'update'])->name('partners.update');
         Route::delete('/partners/{id}', [PartnerController::class, 'destroy'])->name('partners.destroy');
+    
     });
 });
