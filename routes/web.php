@@ -8,7 +8,8 @@ use App\Http\Controllers\Admin\EventController as EventAdminController;
 use App\Http\Controllers\Admin\CategoryController; 
 use App\Http\Controllers\PartnerController;        
 use App\Http\Controllers\Admin\AuthController;
-use App\Http\Controllers\Admin\TransactionController; // Tambahan untuk Langkah 4 & 5
+use App\Http\Controllers\Admin\TransactionController; 
+use App\Http\Controllers\CheckoutController; // Ditambahkan agar lebih rapi
 
 // Rute User Area (Halaman Publik)
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -17,8 +18,13 @@ Route::get('/checkout', [EventController::class,'checkout'])->name('checkout');
 Route::get('/my-ticket', [EventController::class, 'ticket'])->name('ticket');
 
 // Rute Checkout (Sesuai Langkah 4)
-Route::get('/checkout/{event}', [App\Http\Controllers\CheckoutController::class, 'create'])->name('checkout.create');
-Route::post('/checkout/{event}', [App\Http\Controllers\CheckoutController::class, 'store'])->name('checkout.store');
+Route::get('/checkout/{event}', [CheckoutController::class, 'create'])->name('checkout.create');
+Route::post('/checkout/{event}', [CheckoutController::class, 'store'])->name('checkout.store');
+
+// --- TAMBAHAN PERTEMUAN 11: Rute Pembayaran & Sukses ---
+Route::get('/payment/{order_id}', [CheckoutController::class, 'payment'])->name('checkout.payment');
+Route::get('/success/{order_id}', [CheckoutController::class, 'success'])->name('checkout.success');
+// --------------------------------------------------------
 
 // Redirect login default
 Route::get('/login', function () {
