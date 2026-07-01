@@ -9,7 +9,8 @@ use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\PartnerController;        
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\TransactionController; 
-use App\Http\Controllers\CheckoutController; // Ditambahkan agar lebih rapi
+use App\Http\Controllers\CheckoutController; 
+use App\Http\Controllers\MidtransWebhookController; // Ditambahkan untuk Webhook Pertemuan 12
 
 // Rute User Area (Halaman Publik)
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -24,6 +25,10 @@ Route::post('/checkout/{event}', [CheckoutController::class, 'store'])->name('ch
 // --- TAMBAHAN PERTEMUAN 11: Rute Pembayaran & Sukses ---
 Route::get('/payment/{order_id}', [CheckoutController::class, 'payment'])->name('checkout.payment');
 Route::get('/success/{order_id}', [CheckoutController::class, 'success'])->name('checkout.success');
+// --------------------------------------------------------
+
+// --- TAMBAHAN PERTEMUAN 12: Rute Webhook Midtrans ---
+Route::post('/midtrans/callback', [MidtransWebhookController::class, 'handle']);
 // --------------------------------------------------------
 
 // Redirect login default

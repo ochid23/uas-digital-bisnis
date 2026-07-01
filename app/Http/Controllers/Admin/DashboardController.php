@@ -3,43 +3,28 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Models\Event;
 use App\Models\Transaction;
-use App\Models\Event; // Tambahan import model Event
 
 class DashboardController extends Controller
 {
-    function index(){
-        // 1. Total Pendapatan (Hanya menjumlahkan total_price dari transaksi yang sukses)
-        $totalPendapatan = Transaction::whereIn('status', ['success', 'settlement'])->sum('total_price');
+    public function index()
+    {
+        // 1. Menjumlahkan semua nominal total_price dari kolom Transaksi Lunas
+        $totalRevenue = Transaction::whereIn('status', ['settlement', 'success'])->sum('total_price');
 
-        // 2. Tiket Terjual (Jumlah transaksi yang sukses)
-        $tiketTerjual = Transaction::whereIn('status', ['success', 'settlement'])->count();
+        // 2. Menghitung Berapa orang tamu yang tiketnya sudah Lunas
+        $ticketsSold = Transaction::whereIn('status', ['settlement', 'success'])->count();
 
-        // 3. Event Aktif (Jumlah event yang tanggalnya hari ini atau di masa depan)
-        $eventAktif = Event::where('date', '>=', now())->count();
+        // 3. Menghitung Jumlah Acara Mendatang yang aktif diselenggarakan
+        $activeEvents = Event::where('date', '>=', now())->count();
 
-        // 4. Pesanan Pending (Jumlah transaksi berstatus pending)
-        $pesananPending = Transaction::where('status', 'pending')->count();
+        // 4. Menghitung Transaksi Ngadat (Status belum dibayar pelanggan / Expired)
+        $pendingOrders = Transaction::where('status', 'pending')->count();
 
-        // 5. Transaksi Terakhir (5 data terbaru)
-        $latestTransactions = Transaction::with('event')->latest()->take(5)->get();
+        // 5. Menyertakan 5 daftar riwayat pesanan (History) paling mutakhir di panel
+        $recentTransactions = Transaction::with('event')->latest()->take(5)->get();
 
-        // Mengirimkan semua variabel ke view
-        return view('admin.dashboard', compact(
-            'totalPendapatan', 
-            'tiketTerjual', 
-            'eventAktif', 
-            'pesananPending', 
-            'latestTransactions'
-        ));
-    }
-
-    function indexEvent(){
-        return view('admin.events');
-    }
-
-    function indexTransaction(){
-        return view('admin.transactions');
+        return view('admin.dashboard', compact('totalRevenue', 'ticketsSold', 'activeEvents', 'pendingOrders', 'recentTransactions'));
     }
 }
