@@ -16,12 +16,12 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
         ]);
 
-        // --- TAMBAHAN PERTEMUAN 12: Bypass CSRF untuk Webhook Midtrans ---
+        // WAJIB DITAMBAHKAN AGAR WEBHOOK TIDAK DIBLOKIR:
         $middleware->validateCsrfTokens(except: [
             '/midtrans/callback', 
         ]);
-        // ----------------------------------------------------------------
     })
+    
     ->withExceptions(function (Exceptions $exceptions): void {
         //
     })->create();
