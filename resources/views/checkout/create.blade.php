@@ -34,18 +34,23 @@
                     <p class="text-indigo-400 font-bold mt-2">1 x Rp {{ number_format($event->price, 0, ',', '.') }}</p>
                 </div>
             </div>
+            <!-- Rincian Harga Dinamis -->
             <div class="mt-8 pt-6 border-t border-zinc-800 space-y-3">
+                @php
+                    $biayaLayanan = $event->price == 0 ? 0 : 5000;
+                    $totalBayar = $event->price + $biayaLayanan;
+                @endphp
                 <div class="flex justify-between text-zinc-400">
                     <span>Harga Tiket</span>
                     <span>Rp {{ number_format($event->price, 0, ',', '.') }}</span>
                 </div>
                 <div class="flex justify-between text-zinc-400">
                     <span>Biaya Layanan</span>
-                    <span>Rp 5.000</span>
+                    <span>Rp {{ number_format($biayaLayanan, 0, ',', '.') }}</span>
                 </div>
                 <div class="flex justify-between text-2xl font-black mt-4 pt-4 border-t border-zinc-800">
                     <span class="text-white">Total Bayar</span>
-                    <span class="text-indigo-400">Rp {{ number_format($event->price + 5000, 0, ',', '.') }}</span>
+                    <span class="text-indigo-400">Rp {{ number_format($totalBayar, 0, ',', '.') }}</span>
                 </div>
             </div>
         </div>
