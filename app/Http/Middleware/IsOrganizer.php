@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
-class AdminMiddleware
+class IsOrganizer
 {
     /**
      * Handle an incoming request.
@@ -16,11 +16,11 @@ class AdminMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Memastikan user sudah login dan role-nya adalah 'admin'
-        if (Auth::check() && Auth::user()->role === 'admin') {
+        // Pastikan user sudah login dan memiliki role 'organizer'
+        if (Auth::check() && Auth::user()->role === 'organizer') {
             return $next($request);
         }
 
-        abort(403, 'Akses ditolak. Halaman ini khusus untuk Admin.');
+        abort(403, 'Akses ditolak. Halaman ini khusus untuk Organizer/Kepanitiaan.');
     }
 }

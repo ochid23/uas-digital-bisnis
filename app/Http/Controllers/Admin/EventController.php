@@ -7,12 +7,20 @@ use App\Models\Event;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 
 class EventController extends Controller
 {
     public function index()
     {
-        $events = Event::with('category')->latest()->paginate(10);
+        $query = Event::with('category');
+        
+        // Filter Multi-Tenant: Organizer hanya melihat event miliknya
+        if (auth::user()->role !== 'admin') {
+            $query->where('organizer_id', auth::id());
+        }
+
+        $events = $query->latest()->paginate(10);
         return view('admin.events.index', compact('events'));
     }
 
@@ -24,7 +32,6 @@ class EventController extends Controller
 
     public function store(Request $request)
     {
-        // Menerapkan validasi data request dari pengguna
         $data = $request->validate([
             'category_id' => 'required|exists:categories,id',
             'title'       => 'required|string|max:255',
@@ -33,15 +40,16 @@ class EventController extends Controller
             'location'    => 'required|string|max:255',
             'price'       => 'required|numeric|min:0',
             'stock'       => 'required|numeric|min:1',
-            'poster'      => 'nullable|image|max:2048' // Maksimal 2MB
+            'poster'      => 'nullable|image|max:2048' 
         ]);
 
         if ($request->hasFile('poster')) {
-            // Simpan ke direktori storage/app/public/posters
             $data['poster_path'] = $request->file('poster')->store('posters', 'public');
         }
 
-        // Menyimpan data yang telah divalidasi ke dalam tabel menggunakan Model
+        // Set organizer_id berdasarkan user yang sedang login
+        $data['organizer_id'] = auth::id();
+
         Event::create($data);
 
         return redirect()->route('admin.events.index')->with('success', 'Data Event berhasil ditambahkan.');
@@ -67,11 +75,9 @@ class EventController extends Controller
         ]);
 
         if ($request->hasFile('poster')) {
-            // Hapus gambar lama jika sebelumnya sudah memiliki poster
             if ($event->poster_path && Storage::disk('public')->exists($event->poster_path)) {
                 Storage::disk('public')->delete($event->poster_path);
             }
-            // Upload gambar baru
             $data['poster_path'] = $request->file('poster')->store('posters', 'public');
         }
 
@@ -81,7 +87,6 @@ class EventController extends Controller
 
     public function destroy(Event $event)
     {
-        // Tugas Pertemuan 9: Menghapus gambar di storage ketika event dihapus
         if ($event->poster_path && Storage::disk('public')->exists($event->poster_path)) {
             Storage::disk('public')->delete($event->poster_path);
         }

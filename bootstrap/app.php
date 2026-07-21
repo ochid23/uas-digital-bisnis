@@ -11,17 +11,18 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // Mendaftarkan alias middleware admin sesuai modul
+        // Mendaftarkan alias middleware admin dan organizer
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
+            'organizer' => \App\Http\Middleware\IsOrganizer::class, // <-- Tambahan baru di sini
         ]);
 
         // WAJIB DITAMBAHKAN AGAR WEBHOOK TIDAK DIBLOKIR:
         $middleware->validateCsrfTokens(except: [
             '/midtrans/callback', 
         ]);
+        $middleware->redirectGuestsTo(fn () => route('admin.login'));
     })
-    
     ->withExceptions(function (Exceptions $exceptions): void {
         //
     })->create();

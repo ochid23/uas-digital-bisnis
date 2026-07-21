@@ -37,6 +37,19 @@
             </div>
             <button type="submit" class="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black text-xl shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition">Masuk</button>
         </form>
+
+        <!-- Tambahan Fitur 1: Tombol SSO Google -->
+        <div class="mt-6 flex items-center justify-between">
+            <span class="border-b w-1/5 lg:w-1/4"></span>
+            <a href="#" class="text-[10px] text-center text-slate-400 uppercase font-bold tracking-wider">Atau masuk dengan</a>
+            <span class="border-b w-1/5 lg:w-1/4"></span>
+        </div>
+        
+        <a href="{{ route('google.login') }}" class="mt-6 w-full flex items-center justify-center gap-3 py-4 bg-white border-2 border-slate-200 text-slate-700 rounded-2xl font-bold text-lg hover:bg-slate-50 transition shadow-sm">
+            <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-6 h-6" alt="Google">
+            Continue with Google
+        </a>
+
     </div>
 </body>
 </html>

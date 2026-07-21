@@ -36,9 +36,15 @@ class CheckoutController extends Controller
 
         // 3. Generate Kode TRX (Unik)
         $orderId = 'TRX-' . time() . '-' . Str::random(5);
-        $totalPrice = $event->price + 5000; // Menambahkan biaya admin (dummy)
+        
+        // Cek harga dasar tiket. Jika gratis, tidak ada biaya admin.
+        if ($event->price == 0) {
+            $totalPrice = 0;
+        } else {
+            $totalPrice = $event->price + 5000; // Menambahkan biaya admin (dummy)
+        }
 
-        // 4. Merekam Transaksi ke Database
+        // 4. Merekam Transaksi ke Database (Status Awal Pending)
         $transaction = Transaction::create([
             'event_id' => $event->id,
             'order_id' => $orderId,
@@ -46,10 +52,40 @@ class CheckoutController extends Controller
             'customer_email' => $request->customer_email,
             'customer_phone' => $request->customer_phone,
             'total_price' => $totalPrice,
-            'status' => 'pending', // Status Awal
+            'status' => 'pending', 
         ]);
 
-        // --- INTEGRASI SNAP MIDTRANS ---
+
+        // ========================================================
+        // 5. FITUR BYPASS ACARA GRATIS
+        // ========================================================
+        if ($totalPrice == 0) {
+            
+            // a. Langsung ubah status transaksi menjadi sukses
+            $transaction->update([
+                'status' => 'success' 
+            ]);
+
+            // b. Langsung kurangi stok tiket (asumsi pemesanan 1 tiket per transaksi)
+            if ($event->stock > 0) {
+                $event->decrement('stock', 1);
+            }
+
+            // c. Kirim E-Ticket via Email secara otomatis
+            try {
+                Mail::to($transaction->customer_email)->send(new EventTicketMail($transaction));
+            } catch (\Exception $e) {
+                Log::error('Gagal mengirim email E-Ticket untuk tiket gratis: ' . $e->getMessage());
+            }
+
+            // d. Lempar pembeli langsung ke halaman rute sukses
+            return redirect()->route('checkout.success', $transaction->order_id)
+                             ->with('success', 'Tiket gratis berhasil diklaim!');
+        }
+        // ========================================================
+
+
+        // --- 6. INTEGRASI SNAP MIDTRANS (UNTUK TIKET BERBAYAR) ---
 
         // Konfigurasi Kredensial Environment Midtrans
         \Midtrans\Config::$serverKey = env('MIDTRANS_SERVER_KEY');
@@ -60,7 +96,7 @@ class CheckoutController extends Controller
         \Midtrans\Config::$curlOptions = array(
             CURLOPT_SSL_VERIFYHOST => 0,
             CURLOPT_SSL_VERIFYPEER => 0,
-            CURLOPT_HTTPHEADER => [] // <-- Tambahkan baris ini untuk mencegah error 10023
+            CURLOPT_HTTPHEADER => [] 
         );
 
         // Susun Paket Array Data Transaksi
@@ -107,7 +143,17 @@ class CheckoutController extends Controller
 
         $transaction = Transaction::with('event')->where('order_id', $order_id)->firstOrFail();
 
-        // Konfigurasi Midtrans untuk mengecek status transaksi langsung ke API
+        // ------------------------------------------------------------
+        // KONDISI BYPASS PADA HALAMAN SUCCESS:
+        // Jika status transaksi sudah 'success' (artinya ini tiket gratis), 
+        // jangan lakukan pengecekan ke API Midtrans karena transaksi ini 
+        // tidak pernah didaftarkan ke Midtrans.
+        // ------------------------------------------------------------
+        if (strtolower($transaction->status) === 'success') {
+             return view('checkout.success', compact('transaction', 'categories'));
+        }
+
+        // Konfigurasi Midtrans untuk mengecek status transaksi langsung ke API (Hanya untuk yang berbayar)
         \Midtrans\Config::$serverKey = env('MIDTRANS_SERVER_KEY');
         \Midtrans\Config::$isProduction = false;
         \Midtrans\Config::$isSanitized = true;
@@ -120,7 +166,7 @@ class CheckoutController extends Controller
         );
 
         try {
-            // Mengecek status pesanan secara mandiri (Bypass)
+            // Mengecek status pesanan secara mandiri (Bypass Webhook)
             $status = \Midtrans\Transaction::status($order_id);
 
             if ($status) {
