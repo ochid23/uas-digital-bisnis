@@ -28,6 +28,19 @@ Route::get('/events/{event}', [EventController::class,'show'])->name('events.sho
 // Rute Ulasan
 Route::post('/events/{event}/reviews', [ReviewController::class, 'store'])->name('reviews.store');
 
+// Rute PWA Manifest & Service Worker
+Route::get('/manifest.json', function () {
+    return response()->file(public_path('manifest.json'), [
+        'Content-Type' => 'application/manifest+json',
+    ]);
+});
+
+Route::get('/sw.js', function () {
+    return response()->file(public_path('sw.js'), [
+        'Content-Type' => 'application/javascript',
+    ]);
+});
+
 // Rute Webhook Midtrans (Diakses oleh sistem Midtrans)
 Route::post('/midtrans/callback', [MidtransWebhookController::class, 'handle']);
 
