@@ -9,11 +9,19 @@
   },
   "routes": [
     {
+      "src": "/sw.js",
+      "dest": "/sw.js"
+    },
+    {
+      "src": "/manifest.json",
+      "dest": "/manifest.json"
+    },
+    {
       "src": "/build/(.*)",
       "dest": "/build/$1"
     },
     {
-      "src": "/(css|js|images|fonts|assets|icons|screenshots|favicon.ico|robots.txt|manifest.json|sw.js)(.*)",
+      "src": "/(css|js|images|fonts|assets|icons|screenshots|favicon.ico|robots.txt)(.*)",
       "dest": "/$1$2"
     },
     {
