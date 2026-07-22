@@ -68,8 +68,8 @@ class GoogleController extends Controller
                 return redirect()->route('organizer.dashboard');
             }
 
-            // 3. Jika User Biasa (Pembeli Tiket) -> Kembalikan ke halaman intended (Checkout Event tujuan)
-            return redirect()->intended('/checkout');
+            // 3. Jika User Biasa (Pembeli Tiket) -> Kembalikan ke halaman intended (misal /checkout/{id} event yang dipilih)
+            return redirect()->intended('/');
 
         } catch (\Exception $e) {
             // Jika terjadi error, kembalikan ke halaman login dengan pesan error
