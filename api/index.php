@@ -36,5 +36,19 @@ $_ENV['APP_ROUTES_CACHE'] = '/tmp/bootstrap/cache/routes.php';
 putenv('APP_EVENTS_CACHE=/tmp/bootstrap/cache/events.php');
 $_ENV['APP_EVENTS_CACHE'] = '/tmp/bootstrap/cache/events.php';
 
+// Fallback APP_KEY if not set in Vercel Environment Variables
+if (!getenv('APP_KEY') && empty($_ENV['APP_KEY'])) {
+    putenv('APP_KEY=base64:pymWo3UMJ9ZJs6SZYOy6TgbVbN0X+t8hB2JUmyGfMtk=');
+    $_ENV['APP_KEY'] = 'base64:pymWo3UMJ9ZJs6SZYOy6TgbVbN0X+t8hB2JUmyGfMtk=';
+    $_SERVER['APP_KEY'] = 'base64:pymWo3UMJ9ZJs6SZYOy6TgbVbN0X+t8hB2JUmyGfMtk=';
+}
+
+// Fallback APP_DEBUG=true if not explicitly set to false
+if (!getenv('APP_DEBUG') && !isset($_ENV['APP_DEBUG'])) {
+    putenv('APP_DEBUG=true');
+    $_ENV['APP_DEBUG'] = 'true';
+    $_SERVER['APP_DEBUG'] = 'true';
+}
+
 // Forward request to Laravel's public/index.php
 require __DIR__ . '/../public/index.php';
