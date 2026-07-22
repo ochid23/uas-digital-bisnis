@@ -16,7 +16,6 @@ class HomeController extends Controller
 
         // 2. Buat kueri dasar untuk mengambil event
         $query = Event::with('category')
-                      ->where('date', '>=', now())
                       ->orderBy('date', 'asc');
 
         // 3. Filter query jika url memiliki parameter pencarian spesifik ?category=...
