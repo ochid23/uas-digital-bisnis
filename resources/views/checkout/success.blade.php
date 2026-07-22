@@ -13,6 +13,14 @@
             Pembayaran untuk pesanan <strong class="text-zinc-200">{{ $transaction->order_id }}</strong> sedang diproses atau telah berhasil.
             E-Ticket akan dikirim ke email Anda (<strong class="text-zinc-200">{{ $transaction->customer_email }}</strong>) setelah pembayaran terkonfirmasi lunas.
         </p>
+        @if($transaction->is_attended || $transaction->certificate_code)
+            <div class="mb-6 p-4 bg-amber-500/10 border border-amber-500/30 rounded-2xl">
+                <p class="text-xs text-amber-400 font-bold uppercase mb-2">Kehadiran Divalidasi</p>
+                <a href="{{ route('certificate.show', $transaction->certificate_code ?? $transaction->order_id) }}" target="_blank" class="inline-block px-6 py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-zinc-950 rounded-xl font-extrabold shadow-lg shadow-amber-500/20 transition text-sm">
+                    📜 Lihat & Unduh E-Certificate Kehadiran
+                </a>
+            </div>
+        @endif
         <a href="{{ route('home') }}" class="inline-block px-8 py-4 bg-indigo-600 text-white rounded-xl font-bold shadow-lg shadow-indigo-500/20 hover:bg-indigo-500 transition">
             Kembali ke Beranda
         </a>

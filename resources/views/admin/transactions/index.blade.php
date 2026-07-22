@@ -14,6 +14,7 @@
                     <th class="px-8 py-5">Event</th>
                     <th class="px-8 py-5">Tgl Transaksi</th>
                     <th class="px-8 py-5">Status</th>
+                    <th class="px-8 py-5 text-center">E-Sertifikat</th>
                     <th class="px-8 py-5 text-right">Total Tagihan</th>
                 </tr>
             </thead>
@@ -42,6 +43,27 @@
                             <span class="px-3 py-1.5 bg-amber-500/10 text-amber-400 rounded-lg text-xs font-black uppercase tracking-wider ring-1 ring-amber-500/20">Pending</span>
                         @else
                             <span class="px-3 py-1.5 bg-rose-500/10 text-rose-400 rounded-lg text-xs font-black uppercase tracking-wider ring-1 ring-rose-500/20">{{ $trx->status }}</span>
+                        @endif
+                    </td>
+                    <td class="px-8 py-6 text-center">
+                        @if(in_array($trx->status, ['settlement', 'success']))
+                            @if($trx->is_attended)
+                                <div class="flex flex-col items-center gap-1">
+                                    <span class="px-2.5 py-1 bg-emerald-500/20 text-emerald-400 rounded-md text-[10px] font-bold uppercase">Hadir ✓</span>
+                                    <a href="{{ route('certificate.show', $trx->certificate_code ?? $trx->order_id) }}" target="_blank" class="text-amber-400 hover:underline text-xs font-bold flex items-center gap-1">
+                                        📜 Lihat Sertifikat
+                                    </a>
+                                </div>
+                            @else
+                                <form action="{{ route('admin.transactions.issue-certificate', $trx->order_id) }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="px-3 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-zinc-950 text-xs font-extrabold rounded-xl transition shadow-md shadow-amber-500/20">
+                                        Validasi & Kirim Sertifikat
+                                    </button>
+                                </form>
+                            @endif
+                        @else
+                            <span class="text-xs text-zinc-600">-</span>
                         @endif
                     </td>
                     <td class="px-8 py-6 text-right font-black {{ $trx->status == 'pending' ? 'text-zinc-500' : 'text-indigo-400' }} text-lg">

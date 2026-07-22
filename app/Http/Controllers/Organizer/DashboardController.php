@@ -34,7 +34,11 @@ class DashboardController extends Controller
                              ->take(5)
                              ->get();
 
-        // Kirimkan $recentEvents ke view
-        return view('organizer.dashboard', compact('activeEvents', 'ticketsSold', 'totalRevenue', 'recentEvents'));
+        // 5. Mengambil Transaksi Peserta untuk Event milik Organizer ini
+        $recentTransactions = Transaction::whereHas('event', function ($query) use ($organizerId) {
+            $query->where('organizer_id', $organizerId);
+        })->with('event')->latest()->take(10)->get();
+
+        return view('organizer.dashboard', compact('activeEvents', 'ticketsSold', 'totalRevenue', 'recentEvents', 'recentTransactions'));
     }
 }

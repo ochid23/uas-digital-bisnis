@@ -17,13 +17,15 @@ use App\Http\Controllers\Organizer\DashboardController as OrganizerDashboardCont
 use App\Http\Controllers\Organizer\EventController as OrganizerEventController;
 
 // 1. TAMBAHAN BARU: Import GoogleController dari folder Auth
-use App\Http\Controllers\Auth\GoogleController; 
+use App\Http\Controllers\Auth\GoogleController;
+use App\Http\Controllers\CertificateController; 
 
 // ==========================================
 // Rute Publik (Bebas Diakses Tanpa Login)
 // ==========================================
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/events/{event}', [EventController::class,'show'])->name('events.show');
+Route::get('/certificate/verify/{code}', [CertificateController::class, 'show'])->name('certificate.show');
 
 // Rute Ulasan
 Route::post('/events/{event}/reviews', [ReviewController::class, 'store'])->name('reviews.store');
@@ -107,6 +109,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Manajemen Pengguna (Ubah Role)
         Route::get('/users', [UserController::class, 'index'])->name('users.index');
         Route::put('/users/{user}/role', [UserController::class, 'updateRole'])->name('users.updateRole');
+
+        // Penerbitan E-Sertifikat Kehadiran
+        Route::post('/transactions/{order_id}/issue-certificate', [CertificateController::class, 'issue'])->name('transactions.issue-certificate');
     });
 });
 
@@ -127,5 +132,7 @@ Route::prefix('organizer')->name('organizer.')->group(function () {
         // Kelola event khusus organizer (hanya melihat, mengedit, dan menghapus event miliknya sendiri)
         Route::resource('events', OrganizerEventController::class);
         
+        // Penerbitan E-Sertifikat Kehadiran oleh Organizer
+        Route::post('/transactions/{order_id}/issue-certificate', [CertificateController::class, 'issue'])->name('transactions.issue-certificate');
     });
 });

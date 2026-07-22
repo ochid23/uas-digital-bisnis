@@ -140,5 +140,76 @@
             </div>
         @endif
     </div>
+
+    <!-- Tabel Peserta & Penerbitan E-Sertifikat Kehadiran -->
+    <div class="mt-10 bg-zinc-900 rounded-[2.5rem] border border-zinc-800 shadow-lg shadow-black/20 overflow-hidden">
+        <div class="flex justify-between items-center px-8 py-6 border-b border-zinc-800">
+            <div>
+                <h3 class="text-lg font-black text-white">Validasi Kehadiran & Penerbitan E-Sertifikat</h3>
+                <p class="text-xs text-zinc-400 mt-0.5">Kelola kehadiran peserta seminar/workshop dan kirimkan E-Sertifikat otomatis ke email mereka.</p>
+            </div>
+        </div>
+
+        @if($recentTransactions->isEmpty())
+            <div class="text-center py-12 px-6 text-zinc-500">
+                <p class="font-medium">Belum ada transaksi peserta untuk event Anda.</p>
+            </div>
+        @else
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-zinc-950/50 text-zinc-500 uppercase text-[10px] font-black tracking-widest border-b border-zinc-800">
+                        <tr>
+                            <th class="px-8 py-5">Order ID / Peserta</th>
+                            <th class="px-8 py-5">Event</th>
+                            <th class="px-8 py-5">Status Bayar</th>
+                            <th class="px-8 py-5 text-center">Status Kehadiran / E-Sertifikat</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-zinc-800/50">
+                        @foreach($recentTransactions as $trx)
+                        <tr class="hover:bg-zinc-800/30 transition">
+                            <td class="px-8 py-6">
+                                <p class="font-mono text-xs font-bold text-indigo-400 mb-1">{{ $trx->order_id }}</p>
+                                <p class="font-black text-white text-sm">{{ $trx->customer_name }}</p>
+                                <p class="text-xs text-zinc-500">{{ $trx->customer_email }}</p>
+                            </td>
+                            <td class="px-8 py-6">
+                                <p class="font-bold text-zinc-300 text-sm">{{ $trx->event->title ?? '-' }}</p>
+                            </td>
+                            <td class="px-8 py-6">
+                                @if(in_array($trx->status, ['settlement', 'success']))
+                                    <span class="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 rounded-md text-[10px] font-black uppercase">Lunas</span>
+                                @else
+                                    <span class="px-2.5 py-1 bg-amber-500/10 text-amber-400 rounded-md text-[10px] font-black uppercase">{{ $trx->status }}</span>
+                                @endif
+                            </td>
+                            <td class="px-8 py-6 text-center">
+                                @if(in_array($trx->status, ['settlement', 'success']))
+                                    @if($trx->is_attended)
+                                        <div class="flex flex-col items-center gap-1">
+                                            <span class="px-2.5 py-1 bg-emerald-500/20 text-emerald-400 rounded-md text-[10px] font-bold uppercase">Hadir ✓</span>
+                                            <a href="{{ route('certificate.show', $trx->certificate_code ?? $trx->order_id) }}" target="_blank" class="text-amber-400 hover:underline text-xs font-bold flex items-center gap-1">
+                                                📜 Lihat Sertifikat
+                                            </a>
+                                        </div>
+                                    @else
+                                        <form action="{{ route('organizer.transactions.issue-certificate', $trx->order_id) }}" method="POST">
+                                            @csrf
+                                            <button type="submit" class="px-3 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-zinc-950 text-xs font-extrabold rounded-xl transition shadow-md shadow-amber-500/20">
+                                                Validasi & Kirim Sertifikat
+                                            </button>
+                                        </form>
+                                    @endif
+                                @else
+                                    <span class="text-xs text-zinc-600">-</span>
+                                @endif
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @endif
+    </div>
 </div>
 @endsection
