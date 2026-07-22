@@ -43,7 +43,7 @@ class DatabaseSeeder extends Seeder
             'location' => 'Amikom Baru',
             'price' => 50000,
             'stock' => 100,
-            'poster_path' => 'posters/event-1.png',
+            'poster_path' => 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop&q=80',
         ]);
 
         \App\Models\Event::create([
@@ -54,7 +54,7 @@ class DatabaseSeeder extends Seeder
             'location' => 'Inkubator Amikom',
             'price' => 50000,
             'stock' => 100,
-            'poster_path' => 'posters/event-2.png',
+            'poster_path' => 'https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=600&auto=format&fit=crop&q=80',
         ]);
 
         \App\Models\Event::create([
@@ -65,7 +65,7 @@ class DatabaseSeeder extends Seeder
             'location' => 'Cinema Unit 6',
             'price' => 50000,
             'stock' => 100,
-            'poster_path' => 'posters/event-3.png',
+            'poster_path' => 'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?w=600&auto=format&fit=crop&q=80',
         ]);
 
         
