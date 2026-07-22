@@ -1,20 +1,38 @@
 {
-    "name": "naazhi",
-    "short_name": "naazhi",
+    "name": "AmikomEventHub - Platform Tiket Event",
+    "short_name": "AmikomEventHub",
+    "description": "Platform reservasi tiket event eksklusif AmikomEventHub. Pesan tiket konser, seminar, dan workshop dengan mudah.",
     "start_url": "/",
+    "scope": "/",
     "display": "standalone",
     "background_color": "#09090b",
-    "theme_color": "#6366f1",
+    "theme_color": "#4f46e5",
+    "orientation": "portrait",
+    "categories": ["entertainment", "events", "lifestyle"],
     "icons": [
         {
             "src": "/icons/icon-192x192.png",
             "sizes": "192x192",
-            "type": "image/png"
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/icons/icon-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
         },
         {
             "src": "/icons/icon-512x512.png",
             "sizes": "512x512",
-            "type": "image/png"
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/icons/icon-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
         }
     ],
     "screenshots": [
