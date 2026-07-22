@@ -28,7 +28,7 @@
                     <td class="px-8 py-6 font-bold text-zinc-500">{{ $events->firstItem() + $index }}</td>
                     
                     <td class="px-8 py-6">
-                        <img src="{{ ($event->poster_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($event->poster_path)) ? asset('storage/' . $event->poster_path) : 'https://placehold.co/16x20' }}" class="w-16 h-20 rounded-xl object-cover shadow-md border border-zinc-700/50">
+                        <img src="{{ $event->poster_url }}" class="w-16 h-20 rounded-xl object-cover shadow-md border border-zinc-700/50">
                     </td>
                     
                     <td class="px-8 py-6">

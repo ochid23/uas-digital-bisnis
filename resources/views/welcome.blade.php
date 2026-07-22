@@ -83,7 +83,7 @@
             @forelse($events as $event)
             <div class="group bg-zinc-900 rounded-3xl border border-zinc-800 shadow-md shadow-black/20 hover:shadow-2xl hover:shadow-black/60 hover:border-zinc-700 transition-all duration-300 overflow-hidden flex flex-col">
                 <div class="relative overflow-hidden aspect-[3/4]">
-                    <img src="{{ ($event->poster_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($event->poster_path)) ? asset('storage/' . $event->poster_path) : 'https://placehold.co/400x600' }}" 
+                    <img src="{{ $event->poster_url }}" 
                          alt="{{ $event->title }}"
                          class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-90 group-hover:opacity-100">
                     

@@ -4,7 +4,7 @@
 <main class="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 lg:grid-cols-3 gap-12">
         <div class="lg:col-span-1">
             <div class="sticky top-32">
-                <img src="{{ ($event->poster_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($event->poster_path)) ? asset('storage/' . $event->poster_path) : 'https://placehold.co/400x600' }}" alt="{{ $event->title }}"
+                <img src="{{ $event->poster_url }}" alt="{{ $event->title }}"
                     class="w-full rounded-[2.5rem] shadow-2xl shadow-black/50 border-4 border-zinc-800 object-cover aspect-[3/4]">
                 
                 <div class="mt-8 p-6 bg-zinc-900 rounded-3xl border border-zinc-800 shadow-sm">
