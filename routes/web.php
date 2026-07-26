@@ -202,6 +202,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         // Penerbitan E-Sertifikat Kehadiran
         Route::post('/transactions/{order_id}/issue-certificate', [CertificateController::class, 'issue'])->name('transactions.issue-certificate');
+
+        // Check-in Scanner Panitia Registrasi
+        Route::get('/scanner', [\App\Http\Controllers\CheckInController::class, 'index'])->name('scanner.index');
+        Route::post('/checkin', [\App\Http\Controllers\CheckInController::class, 'scan'])->name('checkin.scan');
     });
 });
 
@@ -224,5 +228,9 @@ Route::prefix('organizer')->name('organizer.')->group(function () {
         
         // Penerbitan E-Sertifikat Kehadiran oleh Organizer
         Route::post('/transactions/{order_id}/issue-certificate', [CertificateController::class, 'issue'])->name('transactions.issue-certificate');
+
+        // Check-in Scanner Panitia Registrasi
+        Route::get('/scanner', [\App\Http\Controllers\CheckInController::class, 'index'])->name('scanner.index');
+        Route::post('/checkin', [\App\Http\Controllers\CheckInController::class, 'scan'])->name('checkin.scan');
     });
 });
