@@ -105,6 +105,8 @@ Route::get('/test-email', function (\Illuminate\Http\Request $request) {
     $host = config('mail.mailers.smtp.host');
     $port = config('mail.mailers.smtp.port');
     $username = config('mail.mailers.smtp.username');
+    $encryption = config('mail.mailers.smtp.encryption');
+    $from = config('mail.from.address');
 
     try {
         \Illuminate\Support\Facades\Mail::raw("🧪 Tes Pengiriman Email E-Ticket Naazhi\n\nJika email ini masuk ke inbox Anda, konfigurasi SMTP server Vercel sudah 100% aktif dan berjalan!", function ($message) use ($email) {
@@ -118,7 +120,9 @@ Route::get('/test-email', function (\Illuminate\Http\Request $request) {
                 'mailer' => $mailer,
                 'host' => $host,
                 'port' => $port,
-                'username' => $username ? (substr($username, 0, 3) . '***') : null,
+                'encryption' => $encryption,
+                'from_address' => $from,
+                'username' => $username ? (substr($username, 0, 4) . '***') : null,
             ]
         ]);
     } catch (\Exception $e) {
@@ -129,7 +133,9 @@ Route::get('/test-email', function (\Illuminate\Http\Request $request) {
                 'mailer' => $mailer,
                 'host' => $host,
                 'port' => $port,
-                'username' => $username ? (substr($username, 0, 3) . '***') : null,
+                'encryption' => $encryption,
+                'from_address' => $from,
+                'username' => $username ? (substr($username, 0, 4) . '***') : null,
             ]
         ], 500);
     }
