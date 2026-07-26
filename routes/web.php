@@ -99,6 +99,42 @@ Route::get('/cron-release-expired', function (\Illuminate\Http\Request $request)
     ]);
 });
 
+Route::get('/test-email', function (\Illuminate\Http\Request $request) {
+    $email = $request->query('email', 'hidayat@gmail.com');
+    $mailer = config('mail.default');
+    $host = config('mail.mailers.smtp.host');
+    $port = config('mail.mailers.smtp.port');
+    $username = config('mail.mailers.smtp.username');
+
+    try {
+        \Illuminate\Support\Facades\Mail::raw("🧪 Tes Pengiriman Email E-Ticket Naazhi\n\nJika email ini masuk ke inbox Anda, konfigurasi SMTP server Vercel sudah 100% aktif dan berjalan!", function ($message) use ($email) {
+            $message->to($email)->subject('Tes Integrasi Email E-Ticket Naazhi');
+        });
+
+        return response()->json([
+            'status' => 'success',
+            'message' => "Email tes berhasil dikirim ke {$email}",
+            'config' => [
+                'mailer' => $mailer,
+                'host' => $host,
+                'port' => $port,
+                'username' => $username ? (substr($username, 0, 3) . '***') : null,
+            ]
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 'error',
+            'error_message' => $e->getMessage(),
+            'config' => [
+                'mailer' => $mailer,
+                'host' => $host,
+                'port' => $port,
+                'username' => $username ? (substr($username, 0, 3) . '***') : null,
+            ]
+        ], 500);
+    }
+});
+
 // ==========================================
 // Rute Otentikasi & SSO Google
 // ==========================================
