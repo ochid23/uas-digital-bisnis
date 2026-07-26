@@ -37,7 +37,7 @@ class WhatsAppService
      */
     public static function sendMessage(string $targetPhone, string $message): bool
     {
-        $token = config('services.fonnte.token', env('FONNTE_TOKEN'));
+        $token = config('services.fonnte.token', env('FONNTE_TOKEN', 'MgcXBjDDRhYLtD6B4Lk6'));
         $url = config('services.fonnte.url', env('FONNTE_URL', 'https://api.fonnte.com/send'));
 
         if (empty($token)) {
