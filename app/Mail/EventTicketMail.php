@@ -22,7 +22,10 @@ class EventTicketMail extends Mailable
 
     public function envelope(): Envelope
     {
+        $fromAddress = config('mail.from.address') ?: config('mail.mailers.smtp.username');
+        $fromName = config('mail.from.name', 'Admin Naazhi E-Ticket');
         return new Envelope(
+            from: new \Illuminate\Mail\Mailables\Address($fromAddress, $fromName),
             subject: 'E-Ticket Resmi Anda: ' . $this->transaction->event->title,
         );
     }
