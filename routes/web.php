@@ -46,8 +46,19 @@ Route::get('/sw.js', function () {
 // Rute Webhook Midtrans (Diakses oleh sistem Midtrans)
 Route::post('/midtrans/callback', [MidtransWebhookController::class, 'handle']);
 
-// Rute Helper Vercel Deployment & Cron
+// Rute Helper Vercel Deployment & Cron (Tersedia dengan & tanpa prefix /api)
 Route::get('/api/migrate', function (\Illuminate\Http\Request $request) {
+    $key = $request->query('key', '');
+    if ($key !== env('MIGRATE_KEY', 'naazhi123')) {
+        return response()->json(['error' => 'Unauthorized key'], 401);
+    }
+    \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+    return response()->json([
+        'message' => 'Migration executed successfully!',
+        'output' => \Illuminate\Support\Facades\Artisan::output()
+    ]);
+});
+Route::get('/run-migrate', function (\Illuminate\Http\Request $request) {
     $key = $request->query('key', '');
     if ($key !== env('MIGRATE_KEY', 'naazhi123')) {
         return response()->json(['error' => 'Unauthorized key'], 401);
@@ -66,8 +77,15 @@ Route::get('/api/cron/abandoned-cart', function () {
         'output' => \Illuminate\Support\Facades\Artisan::output()
     ]);
 });
+Route::get('/cron-abandoned-cart', function () {
+    \Illuminate\Support\Facades\Artisan::call('reminder:abandoned-cart');
+    return response()->json([
+        'status' => 'success',
+        'output' => \Illuminate\Support\Facades\Artisan::output()
+    ]);
+});
 
-Route::get('/api/test-wa', function (\Illuminate\Http\Request $request) {
+$testWaHandler = function (\Illuminate\Http\Request $request) {
     $targetPhone = $request->query('phone', '');
     if (empty($targetPhone)) {
         return response()->json(['error' => 'Silakan sertakan parameter ?phone=08xxx'], 400);
@@ -96,7 +114,10 @@ Route::get('/api/test-wa', function (\Illuminate\Http\Request $request) {
     } catch (\Exception $e) {
         return response()->json(['error' => $e->getMessage()], 500);
     }
-});
+};
+
+Route::get('/api/test-wa', $testWaHandler);
+Route::get('/test-wa', $testWaHandler);
 
 // ==========================================
 // Rute Otentikasi & SSO Google
