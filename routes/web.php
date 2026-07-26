@@ -67,6 +67,37 @@ Route::get('/api/cron/abandoned-cart', function () {
     ]);
 });
 
+Route::get('/api/test-wa', function (\Illuminate\Http\Request $request) {
+    $targetPhone = $request->query('phone', '');
+    if (empty($targetPhone)) {
+        return response()->json(['error' => 'Silakan sertakan parameter ?phone=08xxx'], 400);
+    }
+    
+    $token = config('services.fonnte.token', env('FONNTE_TOKEN'));
+    $url = config('services.fonnte.url', env('FONNTE_URL', 'https://api.fonnte.com/send'));
+    $formatted = \App\Services\WhatsAppService::formatPhoneNumber($targetPhone);
+
+    try {
+        $response = \Illuminate\Support\Facades\Http::withHeaders([
+            'Authorization' => $token,
+        ])->post($url, [
+            'target' => $formatted,
+            'message' => "🧪 *Tes Integrasi WhatsApp Naazhi*\n\nPesan ini berhasil dikirim dari sistem website e-ticket Anda!",
+            'countryCode' => '62',
+        ]);
+
+        return response()->json([
+            'target_input' => $targetPhone,
+            'target_formatted' => $formatted,
+            'token_exists' => !empty($token),
+            'fonnte_status' => $response->status(),
+            'fonnte_response' => $response->json(),
+        ]);
+    } catch (\Exception $e) {
+        return response()->json(['error' => $e->getMessage()], 500);
+    }
+});
+
 // ==========================================
 // Rute Otentikasi & SSO Google
 // ==========================================
