@@ -125,6 +125,13 @@ class CheckoutController extends Controller
             // Update rekaman kita bahwa transaksi terkait sudah memiliki id token pelunasan
             $transaction->update(['snap_token' => $snapToken]);
 
+            // Kirim notifikasi WA link pembayaran instan (pemulihan jika tab ditutup)
+            try {
+                \App\Services\WhatsAppService::sendAbandonedCartReminder($transaction);
+            } catch (\Exception $e) {
+                Log::error('Gagal mengirim WA Pending Payment Link: ' . $e->getMessage());
+            }
+
             // Redirect ke halaman antarmuka pembayaran final pelanggan
             return redirect()->route('checkout.payment', $transaction->order_id);
 

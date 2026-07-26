@@ -138,13 +138,14 @@ class WhatsAppService
         $paymentUrl = route('checkout.payment', $transaction->order_id);
 
         $message = "Halo Kak *{$transaction->customer_name}*! 👋\n\n"
-                 . "Kami mendeteksi pemesanan tiket Anda untuk *{$eventTitle}* belum diselesaikan nih.\n\n"
-                 . "📋 *Detail Pesanan Hangus:*\n"
+                 . "Pemesanan tiket Anda untuk *{$eventTitle}* telah kami catat.\n\n"
+                 . "📋 *Detail Pesanan Pending:*\n"
                  . "• Order ID: `{$transaction->order_id}`\n"
-                 . "• Total: {$formattedPrice}\n\n"
-                 . "⚠️ *Jangan sampai kehabisan tiket!* Anda masih bisa melanjutkan pembayaran secara instan dengan mengeklik tombol/link berikut:\n\n"
+                 . "• Total Pembayaran: {$formattedPrice}\n\n"
+                 . "💡 *Tidak sengaja menutup tab browser atau belum menyelesaikan pembayaran?*\n"
+                 . "Jangan khawatir! Anda dapat melanjutkan dan menyelesaikan pembayaran tiket Anda kapan saja melalui link resmi berikut:\n\n"
                  . "👉 {$paymentUrl}\n\n"
-                 . "Jika Anda membutuhkan bantuan, silakan balasi pesan ini. Terima kasih! 🙏";
+                 . "Terima kasih! Jika membutuhkan bantuan, silakan balasi pesan ini. 🙏";
 
         $sent = self::sendMessage($transaction->customer_phone, $message);
 
