@@ -46,7 +46,7 @@ Route::get('/sw.js', function () {
 // Rute Webhook Midtrans (Diakses oleh sistem Midtrans)
 Route::post('/midtrans/callback', [MidtransWebhookController::class, 'handle']);
 
-// Rute Helper Vercel Deployment & Cron (Tersedia dengan & tanpa prefix /api)
+// Rute Helper Vercel Deployment & Cron (Aman & Terlindungi)
 Route::get('/api/migrate', function (\Illuminate\Http\Request $request) {
     $key = $request->query('key', '');
     if ($key !== env('MIGRATE_KEY', 'naazhi123')) {
@@ -54,10 +54,10 @@ Route::get('/api/migrate', function (\Illuminate\Http\Request $request) {
     }
     \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
     return response()->json([
-        'message' => 'Migration executed successfully!',
-        'output' => \Illuminate\Support\Facades\Artisan::output()
+        'message' => 'Migration executed successfully!'
     ]);
 });
+
 Route::get('/run-migrate', function (\Illuminate\Http\Request $request) {
     $key = $request->query('key', '');
     if ($key !== env('MIGRATE_KEY', 'naazhi123')) {
@@ -65,117 +65,22 @@ Route::get('/run-migrate', function (\Illuminate\Http\Request $request) {
     }
     \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
     return response()->json([
-        'message' => 'Migration executed successfully!',
-        'output' => \Illuminate\Support\Facades\Artisan::output()
+        'message' => 'Migration executed successfully!'
     ]);
 });
 
 Route::get('/api/cron/abandoned-cart', function () {
     \Illuminate\Support\Facades\Artisan::call('reminder:abandoned-cart');
     return response()->json([
-        'status' => 'success',
-        'output' => \Illuminate\Support\Facades\Artisan::output()
+        'status' => 'success'
     ]);
 });
+
 Route::get('/cron-abandoned-cart', function () {
     \Illuminate\Support\Facades\Artisan::call('reminder:abandoned-cart');
     return response()->json([
-        'status' => 'success',
-        'output' => \Illuminate\Support\Facades\Artisan::output()
+        'status' => 'success'
     ]);
-});
-
-$testWaHandler = function (\Illuminate\Http\Request $request) {
-    $targetPhone = $request->query('phone', '');
-    if (empty($targetPhone)) {
-        return response()->json(['error' => 'Silakan sertakan parameter ?phone=08xxx'], 400);
-    }
-    
-    $token = config('services.fonnte.token', env('FONNTE_TOKEN'));
-    $url = config('services.fonnte.url', env('FONNTE_URL', 'https://api.fonnte.com/send'));
-    $formatted = \App\Services\WhatsAppService::formatPhoneNumber($targetPhone);
-
-    try {
-        $response = \Illuminate\Support\Facades\Http::withHeaders([
-            'Authorization' => $token,
-        ])->post($url, [
-            'target' => $formatted,
-            'message' => "🧪 *Tes Integrasi WhatsApp Naazhi*\n\nPesan ini berhasil dikirim dari sistem website e-ticket Anda!",
-            'countryCode' => '62',
-        ]);
-
-        return response()->json([
-            'target_input' => $targetPhone,
-            'target_formatted' => $formatted,
-            'token_exists' => !empty($token),
-            'fonnte_status' => $response->status(),
-            'fonnte_response' => $response->json(),
-        ]);
-    } catch (\Exception $e) {
-        return response()->json(['error' => $e->getMessage()], 500);
-    }
-};
-
-Route::get('/api/test-wa', $testWaHandler);
-Route::get('/test-wa', $testWaHandler);
-
-// Rute Manual Resend WA Ticket by Order ID
-Route::get('/send-wa/{order_id}', function ($order_id, \Illuminate\Http\Request $request) {
-    $transaction = \App\Models\Transaction::with('event')->where('order_id', $order_id)->first();
-    if (!$transaction) {
-        return response()->json(['error' => "Transaksi {$order_id} tidak ditemukan."], 404);
-    }
-
-    if ($request->query('force') === '1') {
-        $transaction->wa_sent_at = null;
-        $transaction->save();
-    }
-
-    $token = config('services.fonnte.token', env('FONNTE_TOKEN', 'MgcXBjDDRhYLtD6B4Lk6'));
-    $url = config('services.fonnte.url', env('FONNTE_URL', 'https://api.fonnte.com/send'));
-    $formattedPhone = \App\Services\WhatsAppService::formatPhoneNumber($transaction->customer_phone);
-
-    $eventTitle = $transaction->event ? $transaction->event->title : 'Event';
-    $formattedPrice = $transaction->total_price == 0 ? 'GRATIS' : 'Rp ' . number_format($transaction->total_price, 0, ',', '.');
-    $successUrl = route('checkout.success', $transaction->order_id);
-
-    $message = "Halo Kak *{$transaction->customer_name}*! 🎉\n\n"
-             . "Pembayaran untuk pemesanan tiket Anda telah *BERHASIL*.\n\n"
-             . "📋 *Detail Transaksi:*\n"
-             . "• Order ID: `{$transaction->order_id}`\n"
-             . "• Event: *{$eventTitle}*\n"
-             . "• Total Pembayaran: {$formattedPrice}\n"
-             . "• Status: LUNAS\n\n"
-             . "🎫 *E-Ticket Anda:*\n"
-             . "Silakan klik link di bawah ini untuk melihat dan mengunduh E-Ticket Anda:\n"
-             . "{$successUrl}\n\n"
-             . "Terima kasih telah melakukan pemesanan! Sampai jumpa di lokasi acara. 🚀";
-
-    try {
-        $response = \Illuminate\Support\Facades\Http::withHeaders([
-            'Authorization' => $token,
-        ])->post($url, [
-            'target' => $formattedPhone,
-            'message' => $message,
-            'countryCode' => '62',
-        ]);
-
-        if ($response->successful()) {
-            $transaction->update(['wa_sent_at' => now()]);
-        }
-
-        return response()->json([
-            'order_id' => $transaction->order_id,
-            'customer_name' => $transaction->customer_name,
-            'customer_phone' => $transaction->customer_phone,
-            'formatted_phone' => $formattedPhone,
-            'status' => $transaction->status,
-            'fonnte_status' => $response->status(),
-            'fonnte_response' => $response->json(),
-        ]);
-    } catch (\Exception $e) {
-        return response()->json(['error' => $e->getMessage()], 500);
-    }
 });
 
 // ==========================================

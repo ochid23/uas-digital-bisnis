@@ -43,11 +43,11 @@ if (!getenv('APP_KEY') && empty($_ENV['APP_KEY'])) {
     $_SERVER['APP_KEY'] = 'base64:pymWo3UMJ9ZJs6SZYOy6TgbVbN0X+t8hB2JUmyGfMtk=';
 }
 
-// Fallback APP_DEBUG to true if not set
+// Fallback APP_DEBUG to false if not set
 if (!getenv('APP_DEBUG') && !isset($_ENV['APP_DEBUG'])) {
-    putenv('APP_DEBUG=true');
-    $_ENV['APP_DEBUG'] = 'true';
-    $_SERVER['APP_DEBUG'] = 'true';
+    putenv('APP_DEBUG=false');
+    $_ENV['APP_DEBUG'] = 'false';
+    $_SERVER['APP_DEBUG'] = 'false';
 }
 
 // Fallback Database configuration to Neon PostgreSQL if not set
