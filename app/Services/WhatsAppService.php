@@ -33,9 +33,9 @@ class WhatsAppService
     }
 
     /**
-     * Mengirimkan pesan teks ke target nomor WhatsApp via API Fonnte.
+     * Mengirimkan pesan teks/media ke target nomor WhatsApp via API Fonnte.
      */
-    public static function sendMessage(string $targetPhone, string $message): bool
+    public static function sendMessage(string $targetPhone, string $message, ?string $mediaUrl = null): bool
     {
         $token = config('services.fonnte.token', env('FONNTE_TOKEN', 'MgcXBjDDRhYLtD6B4Lk6'));
         $url = config('services.fonnte.url', env('FONNTE_URL', 'https://api.fonnte.com/send'));
@@ -52,13 +52,19 @@ class WhatsAppService
         }
 
         try {
-            $response = Http::withHeaders([
-                'Authorization' => $token,
-            ])->post($url, [
+            $payload = [
                 'target' => $formattedPhone,
                 'message' => $message,
                 'countryCode' => '62',
-            ]);
+            ];
+
+            if ($mediaUrl) {
+                $payload['url'] = $mediaUrl;
+            }
+
+            $response = Http::withHeaders([
+                'Authorization' => $token,
+            ])->post($url, $payload);
 
             if ($response->successful()) {
                 Log::info('WhatsAppService: Pesan berhasil dikirim ke ' . $formattedPhone, [
@@ -80,7 +86,7 @@ class WhatsAppService
     }
 
     /**
-     * Kirim Notifikasi E-Ticket via WhatsApp setelah pembayaran berhasil.
+     * Kirim Notifikasi E-Ticket via WhatsApp setelah pembayaran berhasil (Lengkap dengan Gambar QR Code).
      */
     public static function sendTicketNotification(Transaction $transaction): bool
     {
@@ -97,6 +103,7 @@ class WhatsAppService
         $eventTitle = $transaction->event ? $transaction->event->title : 'Event';
         $formattedPrice = $transaction->total_price == 0 ? 'GRATIS' : 'Rp ' . number_format($transaction->total_price, 0, ',', '.');
         $successUrl = route('checkout.success', $transaction->order_id);
+        $qrImageUrl = "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=" . urlencode($transaction->order_id);
 
         $message = "Halo Kak *{$transaction->customer_name}*! 🎉\n\n"
                  . "Pembayaran untuk pemesanan tiket Anda telah *BERHASIL*.\n\n"
@@ -105,12 +112,12 @@ class WhatsAppService
                  . "• Event: *{$eventTitle}*\n"
                  . "• Total Pembayaran: {$formattedPrice}\n"
                  . "• Status: LUNAS\n\n"
-                 . "🎫 *E-Ticket Anda:*\n"
-                 . "Silakan klik link di bawah ini untuk melihat dan mengunduh E-Ticket Anda:\n"
-                 . "{$successUrl}\n\n"
-                 . "Terima kasih telah melakukan pemesanan! Sampai jumpa di lokasi acara. 🚀";
+                 . "🎫 *E-Ticket Resmi:*\n"
+                 . "Gambar di atas adalah Kode QR E-Ticket Anda untuk scan di lokasi acara.\n"
+                 . "Link E-Ticket: {$successUrl}\n\n"
+                 . "Terima kasih! Sampai jumpa di lokasi acara. 🚀";
 
-        $sent = self::sendMessage($transaction->customer_phone, $message);
+        $sent = self::sendMessage($transaction->customer_phone, $message, $qrImageUrl);
 
         if ($sent) {
             $transaction->update(['wa_sent_at' => now()]);
