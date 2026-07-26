@@ -46,6 +46,27 @@ Route::get('/sw.js', function () {
 // Rute Webhook Midtrans (Diakses oleh sistem Midtrans)
 Route::post('/midtrans/callback', [MidtransWebhookController::class, 'handle']);
 
+// Rute Helper Vercel Deployment & Cron
+Route::get('/api/migrate', function (\Illuminate\Http\Request $request) {
+    $key = $request->query('key', '');
+    if ($key !== env('MIGRATE_KEY', 'naazhi123')) {
+        return response()->json(['error' => 'Unauthorized key'], 401);
+    }
+    \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+    return response()->json([
+        'message' => 'Migration executed successfully!',
+        'output' => \Illuminate\Support\Facades\Artisan::output()
+    ]);
+});
+
+Route::get('/api/cron/abandoned-cart', function () {
+    \Illuminate\Support\Facades\Artisan::call('reminder:abandoned-cart');
+    return response()->json([
+        'status' => 'success',
+        'output' => \Illuminate\Support\Facades\Artisan::output()
+    ]);
+});
+
 // ==========================================
 // Rute Otentikasi & SSO Google
 // ==========================================

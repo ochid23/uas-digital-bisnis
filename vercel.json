@@ -9,24 +9,22 @@
   },
   "routes": [
     {
-      "src": "/sw.js",
-      "dest": "/sw.js"
-    },
-    {
-      "src": "/manifest.json",
-      "dest": "/manifest.json"
-    },
-    {
       "src": "/build/(.*)",
       "dest": "/build/$1"
     },
     {
-      "src": "/(css|js|images|fonts|assets|icons|screenshots|favicon.ico|robots.txt)(.*)",
+      "src": "/(css|js|images|fonts|assets|icons|screenshots|favicon.ico|robots.txt|manifest.json|sw.js)(.*)",
       "dest": "/$1$2"
     },
     {
       "src": "/(.*)",
       "dest": "/api/index.php"
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/abandoned-cart",
+      "schedule": "*/15 * * * *"
     }
   ]
 }

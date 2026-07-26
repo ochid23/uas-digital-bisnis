@@ -67,6 +67,13 @@ class MidtransWebhookController extends Controller
             } catch (\Exception $e) {
                 Log::error('Gagal mengirim email E-Ticket: ' . $e->getMessage());
             }
+
+            // Mengirimkan WhatsApp E-Ticket ke pelanggan
+            try {
+                \App\Services\WhatsAppService::sendTicketNotification($transaction);
+            } catch (\Exception $e) {
+                Log::error('Gagal mengirim WhatsApp E-Ticket: ' . $e->getMessage());
+            }
         } else {
             Log::warning('Stock habis setelah pembayaran berhasil (Perlu proses refund opsional). Order: ' . $transaction->order_id);
         }

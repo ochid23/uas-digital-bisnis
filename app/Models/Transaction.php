@@ -9,13 +9,15 @@ class Transaction extends Model
     protected $fillable = [
         'event_id', 'order_id', 'customer_name', 'customer_email', 'customer_phone',
         'total_price', 'status', 'snap_token', 'is_attended', 'attended_at',
-        'certificate_code', 'certificate_sent_at'
+        'certificate_code', 'certificate_sent_at', 'wa_sent_at', 'wa_reminder_sent_at'
     ];
 
     protected $casts = [
         'is_attended' => 'boolean',
         'attended_at' => 'datetime',
         'certificate_sent_at' => 'datetime',
+        'wa_sent_at' => 'datetime',
+        'wa_reminder_sent_at' => 'datetime',
     ];
 
     public function event()

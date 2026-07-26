@@ -40,4 +40,10 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URI', (isset($_SERVER['HTTP_HOST']) ? ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] . '/auth/google/callback' : 'http://localhost:8000/auth/google/callback')),
     ],
 
+    'fonnte' => [
+        'token' => env('FONNTE_TOKEN'),
+        'url' => env('FONNTE_URL', 'https://api.fonnte.com/send'),
+    ],
+
 ];
+

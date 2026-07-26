@@ -71,11 +71,17 @@ class CheckoutController extends Controller
                 $event->decrement('stock', 1);
             }
 
-            // c. Kirim E-Ticket via Email secara otomatis
+            // c. Kirim E-Ticket via Email & WhatsApp secara otomatis
             try {
                 Mail::to($transaction->customer_email)->send(new EventTicketMail($transaction));
             } catch (\Exception $e) {
                 Log::error('Gagal mengirim email E-Ticket untuk tiket gratis: ' . $e->getMessage());
+            }
+
+            try {
+                \App\Services\WhatsAppService::sendTicketNotification($transaction);
+            } catch (\Exception $e) {
+                Log::error('Gagal mengirim WA E-Ticket untuk tiket gratis: ' . $e->getMessage());
             }
 
             // d. Lempar pembeli langsung ke halaman rute sukses
@@ -188,6 +194,12 @@ class CheckoutController extends Controller
                                     ->send(new EventTicketMail($transaction));
                             } catch (\Exception $e) {
                                 Log::error('Gagal mengirim email E-Ticket secara manual (Bypass): ' . $e->getMessage());
+                            }
+
+                            try {
+                                \App\Services\WhatsAppService::sendTicketNotification($transaction);
+                            } catch (\Exception $e) {
+                                Log::error('Gagal mengirim WA E-Ticket secara manual (Bypass): ' . $e->getMessage());
                             }
                         }
                     }
