@@ -104,39 +104,34 @@ Route::get('/test-email', function (\Illuminate\Http\Request $request) {
     $mailer = config('mail.default');
     $host = config('mail.mailers.smtp.host');
     $port = config('mail.mailers.smtp.port');
-    $username = config('mail.mailers.smtp.username');
-    $encryption = config('mail.mailers.smtp.encryption');
-    $from = config('mail.from.address');
+
+    $transaction = \App\Models\Transaction::with('event')->latest()->first();
 
     try {
-        \Illuminate\Support\Facades\Mail::raw("🧪 Tes Pengiriman Email E-Ticket Naazhi\n\nJika email ini masuk ke inbox Anda, konfigurasi SMTP server Vercel sudah 100% aktif dan berjalan!", function ($message) use ($email) {
-            $message->to($email)->subject('Tes Integrasi Email E-Ticket Naazhi');
-        });
+        if ($transaction && $transaction->event) {
+            $transaction->customer_email = $email;
+            \Illuminate\Support\Facades\Mail::to($email)->send(new \App\Mail\EventTicketMail($transaction));
+            $msg = "Desain E-Ticket Resmi lengkap dengan QR Code berhasil dikirim ke {$email} (Order: {$transaction->order_id})";
+        } else {
+            \Illuminate\Support\Facades\Mail::raw("🧪 Tes Pengiriman Email E-Ticket Naazhi\n\nJika email ini masuk ke inbox Anda, konfigurasi SMTP server Vercel sudah 100% aktif dan berjalan!", function ($message) use ($email) {
+                $message->to($email)->subject('Tes Integrasi Email E-Ticket Naazhi');
+            });
+            $msg = "Email tes berhasil dikirim ke {$email}";
+        }
 
         return response()->json([
             'status' => 'success',
-            'message' => "Email tes berhasil dikirim ke {$email}",
+            'message' => $msg,
             'config' => [
                 'mailer' => $mailer,
                 'host' => $host,
                 'port' => $port,
-                'encryption' => $encryption,
-                'from_address' => $from,
-                'username' => $username ? (substr($username, 0, 4) . '***') : null,
             ]
         ]);
     } catch (\Exception $e) {
         return response()->json([
             'status' => 'error',
             'error_message' => $e->getMessage(),
-            'config' => [
-                'mailer' => $mailer,
-                'host' => $host,
-                'port' => $port,
-                'encryption' => $encryption,
-                'from_address' => $from,
-                'username' => $username ? (substr($username, 0, 4) . '***') : null,
-            ]
         ], 500);
     }
 });
