@@ -9,4 +9,5 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('reminder:abandoned-cart')->everyTenMinutes();
+Schedule::command('tickets:release-expired --minutes=15')->everyFiveMinutes();
 

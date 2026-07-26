@@ -43,7 +43,11 @@ class MidtransWebhookController extends Controller
             $transaction->status = 'settlement';
             $this->processSuccess($transaction);
         } else if (in_array($transactionStatus, ['cancel', 'deny', 'expire'])) {
-            $transaction->status = 'failed';
+            // Jika transaksi sebelumnya pending (stok sempat di-reserve), kembalikan stok (+1)
+            if ($transaction->status === 'pending' && $transaction->event) {
+                $transaction->event->increment('stock', 1);
+            }
+            $transaction->status = ($transactionStatus === 'expire') ? 'expired' : 'failed';
         } else if ($transactionStatus == 'pending') {
             $transaction->status = 'pending';
         }
@@ -54,28 +58,18 @@ class MidtransWebhookController extends Controller
 
     private function processSuccess(Transaction $transaction)
     {
-        $event = $transaction->event;
+        // Mengirimkan email E-Ticket ke pelanggan
+        try {
+            \Illuminate\Support\Facades\Mail::to($transaction->customer_email)->send(new \App\Mail\EventTicketMail($transaction));
+        } catch (\Exception $e) {
+            Log::error('Gagal mengirim email E-Ticket: ' . $e->getMessage());
+        }
 
-        // Jika tiket masih ada dan terhubung dengan data event, kurangi jumlahnya sebanyak 1
-        if ($event && $event->stock > 0) {
-            $event->stock = $event->stock - 1;
-            $event->save();
-
-            // Mengirimkan email E-Ticket ke pelanggan
-            try {
-                \Illuminate\Support\Facades\Mail::to($transaction->customer_email)->send(new \App\Mail\EventTicketMail($transaction));
-            } catch (\Exception $e) {
-                Log::error('Gagal mengirim email E-Ticket: ' . $e->getMessage());
-            }
-
-            // Mengirimkan WhatsApp E-Ticket ke pelanggan
-            try {
-                \App\Services\WhatsAppService::sendTicketNotification($transaction);
-            } catch (\Exception $e) {
-                Log::error('Gagal mengirim WhatsApp E-Ticket: ' . $e->getMessage());
-            }
-        } else {
-            Log::warning('Stock habis setelah pembayaran berhasil (Perlu proses refund opsional). Order: ' . $transaction->order_id);
+        // Mengirimkan WhatsApp E-Ticket ke pelanggan
+        try {
+            \App\Services\WhatsAppService::sendTicketNotification($transaction);
+        } catch (\Exception $e) {
+            Log::error('Gagal mengirim WhatsApp E-Ticket: ' . $e->getMessage());
         }
     }
 }

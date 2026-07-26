@@ -83,6 +83,22 @@ Route::get('/cron-abandoned-cart', function () {
     ]);
 });
 
+Route::get('/api/cron/release-expired', function (\Illuminate\Http\Request $request) {
+    $minutes = (int) $request->query('minutes', 15);
+    \Illuminate\Support\Facades\Artisan::call('tickets:release-expired', ['--minutes' => $minutes]);
+    return response()->json([
+        'status' => 'success'
+    ]);
+});
+
+Route::get('/cron-release-expired', function (\Illuminate\Http\Request $request) {
+    $minutes = (int) $request->query('minutes', 15);
+    \Illuminate\Support\Facades\Artisan::call('tickets:release-expired', ['--minutes' => $minutes]);
+    return response()->json([
+        'status' => 'success'
+    ]);
+});
+
 // ==========================================
 // Rute Otentikasi & SSO Google
 // ==========================================

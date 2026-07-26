@@ -9,6 +9,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\EventTicketMail;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class CheckoutController extends Controller
 {
@@ -29,49 +30,47 @@ class CheckoutController extends Controller
             'customer_phone' => 'required|string|max:20',
         ]);
 
-        // 2. Cegah Check-out Jika Tiket Habis
-        if ($event->stock <= 0) {
-            return back()->with('error', 'Mohon maaf, tiket untuk acara ini sudah habis.');
-        }
-
-        // 3. Generate Kode TRX (Unik)
+        // 2. Generate Kode TRX (Unik) & Total Harga
         $orderId = 'TRX-' . time() . '-' . Str::random(5);
-        
-        // Cek harga dasar tiket. Jika gratis, tidak ada biaya admin.
-        if ($event->price == 0) {
-            $totalPrice = 0;
-        } else {
-            $totalPrice = $event->price + 5000; // Menambahkan biaya admin (dummy)
+        $totalPrice = ($event->price == 0) ? 0 : ($event->price + 5000);
+
+        $transaction = null;
+
+        // 3. PESIMISTIC LOCKING & ATOMIC STOCK RESERVATION
+        // Menahan stok (-1) secara langsung saat tombol checkout diklik (mencegah Race Condition)
+        try {
+            DB::transaction(function () use ($request, $event, $orderId, $totalPrice, &$transaction) {
+                $lockedEvent = Event::where('id', $event->id)->lockForUpdate()->first();
+
+                if (!$lockedEvent || $lockedEvent->stock <= 0) {
+                    throw new \Exception('STOK_HABIS');
+                }
+
+                // Tahan (reserve) stok tiket secara otomatis
+                $lockedEvent->decrement('stock', 1);
+
+                // Rekam transaksi awal (status pending)
+                $transaction = Transaction::create([
+                    'event_id' => $event->id,
+                    'order_id' => $orderId,
+                    'customer_name' => $request->customer_name,
+                    'customer_email' => $request->customer_email,
+                    'customer_phone' => $request->customer_phone,
+                    'total_price' => $totalPrice,
+                    'status' => ($totalPrice == 0) ? 'success' : 'pending',
+                ]);
+            });
+        } catch (\Exception $e) {
+            if ($e->getMessage() === 'STOK_HABIS') {
+                return back()->with('error', 'Mohon maaf, tiket untuk acara ini baru saja habis.');
+            }
+            return back()->with('error', 'Gagal memproses reservasi tiket: ' . $e->getMessage());
         }
-
-        // 4. Merekam Transaksi ke Database (Status Awal Pending)
-        $transaction = Transaction::create([
-            'event_id' => $event->id,
-            'order_id' => $orderId,
-            'customer_name' => $request->customer_name,
-            'customer_email' => $request->customer_email,
-            'customer_phone' => $request->customer_phone,
-            'total_price' => $totalPrice,
-            'status' => 'pending', 
-        ]);
-
 
         // ========================================================
-        // 5. FITUR BYPASS ACARA GRATIS
+        // 4. FITUR BYPASS ACARA GRATIS
         // ========================================================
         if ($totalPrice == 0) {
-            
-            // a. Langsung ubah status transaksi menjadi sukses
-            $transaction->update([
-                'status' => 'success' 
-            ]);
-
-            // b. Langsung kurangi stok tiket (asumsi pemesanan 1 tiket per transaksi)
-            if ($event->stock > 0) {
-                $event->decrement('stock', 1);
-            }
-
-            // c. Kirim E-Ticket via Email & WhatsApp secara otomatis
             try {
                 Mail::to($transaction->customer_email)->send(new EventTicketMail($transaction));
             } catch (\Exception $e) {
@@ -84,7 +83,6 @@ class CheckoutController extends Controller
                 Log::error('Gagal mengirim WA E-Ticket untuk tiket gratis: ' . $e->getMessage());
             }
 
-            // d. Lempar pembeli langsung ke halaman rute sukses
             return redirect()->route('checkout.success', $transaction->order_id)
                              ->with('success', 'Tiket gratis berhasil diklaim!');
         }
@@ -192,22 +190,17 @@ class CheckoutController extends Controller
                     if (strtolower($transaction->status) === 'pending') {
                         $transaction->update(['status' => 'success']);
 
-                        if ($transaction->event && $transaction->event->stock > 0) {
-                            $transaction->event->stock = $transaction->event->stock - 1;
-                            $transaction->event->save();
+                        try {
+                            Mail::to($transaction->customer_email)
+                                ->send(new EventTicketMail($transaction));
+                        } catch (\Exception $e) {
+                            Log::error('Gagal mengirim email E-Ticket secara manual (Bypass): ' . $e->getMessage());
+                        }
 
-                            try {
-                                Mail::to($transaction->customer_email)
-                                    ->send(new EventTicketMail($transaction));
-                            } catch (\Exception $e) {
-                                Log::error('Gagal mengirim email E-Ticket secara manual (Bypass): ' . $e->getMessage());
-                            }
-
-                            try {
-                                \App\Services\WhatsAppService::sendTicketNotification($transaction);
-                            } catch (\Exception $e) {
-                                Log::error('Gagal mengirim WA E-Ticket secara manual (Bypass): ' . $e->getMessage());
-                            }
+                        try {
+                            \App\Services\WhatsAppService::sendTicketNotification($transaction);
+                        } catch (\Exception $e) {
+                            Log::error('Gagal mengirim WA E-Ticket secara manual (Bypass): ' . $e->getMessage());
                         }
                     }
                 }
