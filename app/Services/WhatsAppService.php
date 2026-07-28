@@ -62,7 +62,7 @@ class WhatsAppService
                 $payload['url'] = $mediaUrl;
             }
 
-            $response = Http::withHeaders([
+            $response = Http::asForm()->withHeaders([
                 'Authorization' => $token,
             ])->post($url, $payload);
 
