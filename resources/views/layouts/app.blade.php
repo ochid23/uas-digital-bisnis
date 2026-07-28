@@ -98,10 +98,12 @@
                     </form>
                 </div>
             @else
-                <!-- Tombol Login Google Jika Belum Login -->
-                <a href="{{ route('google.login') }}" class="flex items-center gap-2.5 px-4 py-2 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl border border-zinc-700/80 shadow-md transition-all text-xs font-bold active:scale-95">
-                    <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-4 h-4" alt="Google">
-                    Masuk dengan Google
+                <!-- Tombol Masuk / Sign In Jika Belum Login -->
+                <a href="{{ route('login') }}" class="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl shadow-lg shadow-indigo-600/20 transition-all text-xs font-black active:scale-95">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+                    </svg>
+                    Masuk
                 </a>
             @endauth
         </div>
