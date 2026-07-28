@@ -25,6 +25,7 @@ use App\Http\Controllers\CertificateController;
 // ==========================================
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/events/{event}', [EventController::class,'show'])->name('events.show');
+Route::get('/event/{event}', [EventController::class,'show'])->name('event.show');
 Route::get('/certificate/verify/{code}', [CertificateController::class, 'show'])->name('certificate.show');
 
 // Rute Ulasan

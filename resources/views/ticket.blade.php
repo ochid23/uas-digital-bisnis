@@ -163,7 +163,7 @@
                         @endif
 
                         @if($trx->event_id)
-                            <a href="{{ route('event.show', $trx->event_id) }}" class="px-4 py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold rounded-xl text-xs transition border border-zinc-700">
+                            <a href="{{ route('events.show', $trx->event_id) }}" class="px-4 py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold rounded-xl text-xs transition border border-zinc-700">
                                 Detail Acara
                             </a>
                         @endif
