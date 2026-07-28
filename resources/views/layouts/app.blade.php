@@ -42,15 +42,15 @@
                 AE</div>
             <span class="text-xl font-bold tracking-tight text-white">AmikomEventHub</span>
         </a>
-        <div class="flex gap-6 font-medium text-sm items-center">
-            <div class="hidden md:flex gap-6 items-center">
-                @if(Auth::check() && Auth::user()->role === 'organizer')
+        <div class="flex gap-4 sm:gap-6 font-medium text-xs sm:text-sm items-center">
+            <div class="flex gap-3 sm:gap-6 items-center">
+                @if((Auth::check() && Auth::user()->role === 'organizer') || request()->is('organizer*') || request()->is('scanner*'))
                     <a href="{{ route('organizer.dashboard') }}" class="text-indigo-400 font-bold">Dashboard Panitia</a>
                     <a href="{{ route('organizer.events.index') }}" class="text-zinc-400 hover:text-zinc-200 transition">Acara Saya</a>
                     <a href="{{ route('organizer.scanner.index') }}" class="text-zinc-400 hover:text-zinc-200 transition flex items-center gap-1 font-bold">
-                        📷 Scanner QR Tiket
+                        📷 Scanner QR
                     </a>
-                @elseif(Auth::check() && Auth::user()->role === 'admin')
+                @elseif((Auth::check() && Auth::user()->role === 'admin') || request()->is('admin*'))
                     <a href="{{ route('admin.dashboard') }}" class="text-indigo-400 font-bold">Dashboard Admin</a>
                     <a href="{{ route('admin.events.index') }}" class="text-zinc-400 hover:text-zinc-200 transition font-bold">Kelola Event</a>
                 @else
