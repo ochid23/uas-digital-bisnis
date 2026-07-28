@@ -36,16 +36,60 @@
 
     <nav
         class="glass sticky top-4 z-40 mx-4 md:mx-auto max-w-7xl mt-4 px-6 py-4 rounded-2xl border border-zinc-800 shadow-2xl shadow-black/50 flex justify-between items-center">
-        <div class="flex items-center gap-3">
+        <a href="/" class="flex items-center gap-3 group">
             <div
-                class="w-10 h-10 bg-indigo-500/20 border border-indigo-500/30 rounded-xl flex items-center justify-center text-indigo-400 font-bold text-xl">
+                class="w-10 h-10 bg-indigo-500/20 border border-indigo-500/30 rounded-xl flex items-center justify-center text-indigo-400 font-bold text-xl group-hover:scale-105 transition">
                 AE</div>
             <span class="text-xl font-bold tracking-tight text-white">AmikomEventHub</span>
-        </div>
-        <div class="hidden md:flex gap-8 font-medium text-sm items-center">
-            <a href="/" class="text-indigo-400">Jelajahi</a>
-            <a href="/#events" class="text-zinc-400 hover:text-zinc-200 transition">Kategori</a>
-            <a href="#" class="text-zinc-400 hover:text-zinc-200 transition">Tentang Kami</a>
+        </a>
+        <div class="flex gap-6 font-medium text-sm items-center">
+            <div class="hidden md:flex gap-6 items-center">
+                <a href="/" class="text-indigo-400 font-bold">Jelajahi</a>
+                <a href="/#events" class="text-zinc-400 hover:text-zinc-200 transition">Kategori</a>
+                @auth
+                    <a href="{{ route('ticket') }}" class="text-zinc-400 hover:text-zinc-200 transition flex items-center gap-1.5 font-bold">
+                        <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path></svg>
+                        Tiket Saya
+                    </a>
+                @endauth
+            </div>
+
+            @auth
+                <!-- Tampilan User Sudah Login -->
+                <div class="flex items-center gap-3 pl-4 border-l border-zinc-800">
+                    <div class="flex items-center gap-2.5">
+                        <img src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name) }}&background=6366f1&color=fff" 
+                             class="w-9 h-9 rounded-xl border border-indigo-500/30 object-cover" alt="User Avatar">
+                        <div class="hidden sm:block text-left">
+                            <p class="text-xs font-bold text-white leading-tight truncate max-w-[120px]">{{ Auth::user()->name }}</p>
+                            <p class="text-[10px] text-indigo-400 font-bold uppercase tracking-wider">{{ Auth::user()->role === 'admin' ? 'Superadmin' : (Auth::user()->role === 'organizer' ? 'Organizer' : 'Pembeli') }}</p>
+                        </div>
+                    </div>
+
+                    @if(Auth::user()->role === 'admin')
+                        <a href="{{ route('admin.dashboard') }}" class="px-3 py-1.5 bg-indigo-500/10 hover:bg-indigo-600 text-indigo-400 hover:text-white rounded-xl text-xs font-bold transition border border-indigo-500/20">
+                            Dashboard Admin
+                        </a>
+                    @elseif(Auth::user()->role === 'organizer')
+                        <a href="{{ route('organizer.dashboard') }}" class="px-3 py-1.5 bg-indigo-500/10 hover:bg-indigo-600 text-indigo-400 hover:text-white rounded-xl text-xs font-bold transition border border-indigo-500/20">
+                            Dashboard Organizer
+                        </a>
+                    @endif
+
+                    <form action="{{ route('admin.logout') }}" method="POST" class="inline-block">
+                        @csrf
+                        <button type="submit" title="Keluar Akun" class="p-2 text-zinc-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                        </button>
+                    </form>
+                </div>
+            @else
+                <!-- Tombol Login Google Jika Belum Login -->
+                <a href="{{ route('google.login') }}" class="flex items-center gap-2.5 px-4 py-2 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl border border-zinc-700/80 shadow-md transition-all text-xs font-bold active:scale-95">
+                    <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-4 h-4" alt="Google">
+                    Masuk dengan Google
+                </a>
+            @endauth
         </div>
     </nav>
 

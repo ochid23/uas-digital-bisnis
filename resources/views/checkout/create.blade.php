@@ -55,17 +55,44 @@
 
         <!-- Form Card -->
         <div class="bg-zinc-900 rounded-3xl border border-zinc-800 p-8 shadow-sm">
-            <h3 class="text-xl font-bold mb-6 italic text-zinc-300 underline underline-offset-8 decoration-zinc-700">📦 Data Pemesan (Tanpa Login)</h3>
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
+                <h3 class="text-xl font-bold italic text-zinc-300 underline underline-offset-8 decoration-zinc-700">📦 Data Pemesan</h3>
+                @auth
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-xl text-xs font-bold w-fit">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                        Terhubung Google (Auto-Fill)
+                    </span>
+                @else
+                    <a href="{{ route('google.login') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-zinc-950 hover:bg-zinc-800 text-zinc-300 rounded-xl text-xs font-bold border border-zinc-800 transition w-fit">
+                        <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-3.5 h-3.5" alt="Google">
+                        Masuk dengan Google untuk Isi Otomatis
+                    </a>
+                @endauth
+            </div>
+
+            @auth
+                <div class="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl mb-6 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <img src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name) }}&background=10b981&color=fff" class="w-8 h-8 rounded-full border border-emerald-500/30">
+                        <div>
+                            <p class="text-xs font-bold text-emerald-400">Tersambung sebagai {{ Auth::user()->name }}</p>
+                            <p class="text-xs text-zinc-400">{{ Auth::user()->email }}</p>
+                        </div>
+                    </div>
+                    <span class="text-[10px] text-emerald-400 font-black bg-emerald-500/20 px-2.5 py-1 rounded-lg uppercase">Aktif</span>
+                </div>
+            @endauth
+
             <form action="{{ route('checkout.store', $event->id) }}" method="POST" class="space-y-6">
                 @csrf
                 <div>
                     <label class="block text-xs font-bold text-zinc-400 mb-2 uppercase tracking-wide">Nama Lengkap</label>
-                    <input type="text" name="customer_name" placeholder="Masukkan nama sesuai identitas" class="w-full px-5 py-4 bg-zinc-950 border border-zinc-800 rounded-2xl focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-zinc-100 placeholder:text-zinc-600 transition font-medium" required value="{{ old('customer_name') }}">
+                    <input type="text" name="customer_name" placeholder="Masukkan nama sesuai identitas" class="w-full px-5 py-4 bg-zinc-950 border border-zinc-800 rounded-2xl focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-zinc-100 placeholder:text-zinc-600 transition font-medium" required value="{{ old('customer_name', Auth::check() ? Auth::user()->name : '') }}">
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label class="block text-xs font-bold text-zinc-400 mb-2 uppercase tracking-wide">Email Aktif</label>
-                        <input type="email" name="customer_email" placeholder="contoh@gmail.com" class="w-full px-5 py-4 bg-zinc-950 border border-zinc-800 rounded-2xl focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-zinc-100 placeholder:text-zinc-600 transition font-medium" required value="{{ old('customer_email') }}">
+                        <input type="email" name="customer_email" placeholder="contoh@gmail.com" class="w-full px-5 py-4 bg-zinc-950 border border-zinc-800 rounded-2xl focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-zinc-100 placeholder:text-zinc-600 transition font-medium" required value="{{ old('customer_email', Auth::check() ? Auth::user()->email : '') }}">
                         <p class="text-[10px] text-zinc-500 mt-2 font-bold uppercase tracking-tighter">*E-Ticket akan dikirim ke email ini</p>
                     </div>
                     <div>
