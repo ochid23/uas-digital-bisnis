@@ -66,17 +66,49 @@
         </div>
 
         <div>
-            <label class="block text-sm font-bold text-zinc-300 mb-2 uppercase tracking-wide">Poster Event (Opsional)</label>
-            <input type="file" name="poster" accept="image/*" 
-                class="w-full px-5 py-4 bg-zinc-950 border-2 border-zinc-800 text-zinc-400 rounded-2xl focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition font-medium file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-indigo-500/10 file:text-indigo-400 hover:file:bg-indigo-500/20 cursor-pointer">
-            @if($event->poster_path)
-                <div class="mt-4 p-2 bg-zinc-950 border border-zinc-800 rounded-2xl inline-block">
-                    <p class="text-sm text-zinc-400 mb-2 px-2">Poster saat ini:</p>
-                    <img src="{{ asset('storage/' . $event->poster_path) }}" alt="Poster Saat Ini" class="h-32 object-cover rounded-xl shadow-md">
+            <label class="block text-sm font-bold text-zinc-300 mb-2 uppercase tracking-wide">Poster Event (Dinamis File / Link URL)</label>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+                <div>
+                    <span class="text-xs font-bold text-zinc-400 block mb-1">Opsi A: Upload File Baru</span>
+                    <input type="file" name="poster" id="poster_file_input" accept="image/*" onchange="previewPosterFile(this)"
+                        class="w-full px-4 py-3 bg-zinc-950 border-2 border-zinc-800 text-zinc-400 rounded-2xl focus:ring-1 focus:ring-indigo-500 outline-none text-xs file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-500/10 file:text-indigo-400 cursor-pointer">
                 </div>
-            @endif
+                <div>
+                    <span class="text-xs font-bold text-zinc-400 block mb-1">Opsi B: Ganti Link URL Gambar Online</span>
+                    <input type="url" name="poster_url" id="poster_url_input" value="{{ old('poster_url', str_starts_with($event->poster_path ?? '', 'http') ? $event->poster_path : '') }}" placeholder="https://images.unsplash.com/..." oninput="previewPosterUrl(this.value)"
+                        class="w-full px-4 py-3.5 bg-zinc-950 border-2 border-zinc-800 text-white rounded-2xl focus:ring-1 focus:ring-indigo-500 outline-none text-xs placeholder-zinc-600 font-medium">
+                </div>
+            </div>
+
+            <div class="mt-4 p-3 bg-zinc-950 border border-zinc-800 rounded-2xl flex items-center gap-4">
+                <img id="poster_preview_img" src="{{ $event->poster_url }}" alt="Poster Saat Ini" class="w-16 h-20 object-cover rounded-xl shadow-md border border-zinc-700">
+                <div>
+                    <p class="text-xs font-bold text-zinc-300 mb-1">Poster Acara Saat Ini</p>
+                    <p class="text-[11px] text-zinc-500">Pilih file baru atau ganti URL di atas jika ingin mengubah poster.</p>
+                </div>
+            </div>
+
             @error('poster') <span class="text-rose-500 text-sm mt-1 block">{{ $message }}</span> @enderror
+            @error('poster_url') <span class="text-rose-500 text-sm mt-1 block">{{ $message }}</span> @enderror
         </div>
+
+        <script>
+            function previewPosterFile(input) {
+                if (input.files && input.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        document.getElementById('poster_preview_img').src = e.target.result;
+                    }
+                    reader.readAsDataURL(input.files[0]);
+                }
+            }
+
+            function previewPosterUrl(url) {
+                if (url && url.trim().length > 5) {
+                    document.getElementById('poster_preview_img').src = url;
+                }
+            }
+        </script>
 
         <div class="pt-6 flex justify-end gap-4 border-t border-zinc-800">
             <a href="{{ route('admin.events.index') }}" class="px-6 py-4 text-zinc-400 font-bold hover:text-white hover:bg-zinc-800 rounded-2xl transition">Batal</a>

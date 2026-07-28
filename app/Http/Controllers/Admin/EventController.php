@@ -60,10 +60,13 @@ class EventController extends Controller
             'location'    => 'required|string|max:255',
             'price'       => 'required|numeric|min:0',
             'stock'       => 'required|numeric|min:1',
-            'poster'      => 'nullable|image|max:2048' 
+            'poster'      => 'nullable|image|max:5120',
+            'poster_url'  => 'nullable|url|max:1000'
         ]);
 
-        if ($request->hasFile('poster')) {
+        if ($request->filled('poster_url')) {
+            $data['poster_path'] = $request->poster_url;
+        } elseif ($request->hasFile('poster')) {
             $data['poster_path'] = $request->file('poster')->store('posters', 'public');
         }
 
@@ -92,10 +95,13 @@ class EventController extends Controller
             'location'    => 'required|string|max:255',
             'price'       => 'required|numeric|min:0',
             'stock'       => 'required|numeric|min:1',
-            'poster'      => 'nullable|image|max:2048'
+            'poster'      => 'nullable|image|max:5120',
+            'poster_url'  => 'nullable|url|max:1000'
         ]);
 
-        if ($request->hasFile('poster')) {
+        if ($request->filled('poster_url')) {
+            $data['poster_path'] = $request->poster_url;
+        } elseif ($request->hasFile('poster')) {
             if ($event->poster_path && Storage::disk('public')->exists($event->poster_path)) {
                 Storage::disk('public')->delete($event->poster_path);
             }

@@ -70,16 +70,49 @@
 
                 <!-- Poster Path -->
                 <div class="md:col-span-2">
-                    <label for="poster_path" class="block text-sm font-bold text-zinc-300 mb-2">Poster Event <span class="text-zinc-500 font-normal">(Kosongkan jika tidak diubah)</span></label>
-                    @if($event->poster_path)
-                        <div class="mb-4 p-2 bg-zinc-950 border border-zinc-800 rounded-2xl inline-block">
-                            <img src="{{ asset('storage/' . $event->poster_path) }}" alt="Poster Saat Ini" class="h-40 object-cover rounded-xl shadow-md">
+                    <label class="block text-sm font-bold text-zinc-300 mb-2">Poster Event (File atau Link URL Gambar)</label>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+                        <div>
+                            <span class="text-xs font-bold text-zinc-400 block mb-1">Opsi A: Upload File Baru</span>
+                            <input type="file" name="poster_path" id="poster_file_input" accept="image/*" onchange="previewOrgPosterFile(this)" 
+                                class="block w-full text-xs text-zinc-400 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-500/10 file:text-indigo-400 hover:file:bg-indigo-500/20 transition-all border border-zinc-800 bg-zinc-950 rounded-xl p-2 cursor-pointer">
                         </div>
-                    @endif
-                    <input type="file" name="poster_path" id="poster_path" 
-                        class="block w-full text-sm text-zinc-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-indigo-500/10 file:text-indigo-400 hover:file:bg-indigo-500/20 transition-all border border-zinc-800 bg-zinc-950 rounded-xl p-2 cursor-pointer">
+                        <div>
+                            <span class="text-xs font-bold text-zinc-400 block mb-1">Opsi B: Ganti Link URL Gambar Online</span>
+                            <input type="url" name="poster_url" id="poster_url_input" value="{{ old('poster_url', str_starts_with($event->poster_path ?? '', 'http') ? $event->poster_path : '') }}" placeholder="https://images.unsplash.com/..." oninput="previewOrgPosterUrl(this.value)"
+                                class="block w-full rounded-xl bg-zinc-950 border border-zinc-800 text-white px-4 py-2.5 focus:outline-none focus:border-indigo-500 text-xs placeholder-zinc-600 font-medium">
+                        </div>
+                    </div>
+
+                    <div class="mt-3 p-3 bg-zinc-950 border border-zinc-800 rounded-2xl flex items-center gap-4">
+                        <img id="org_poster_preview_img" src="{{ $event->poster_url }}" alt="Poster Saat Ini" class="w-16 h-20 object-cover rounded-xl shadow-md border border-zinc-700">
+                        <div>
+                            <p class="text-xs font-bold text-zinc-300 mb-1">Poster Saat Ini</p>
+                            <p class="text-[11px] text-zinc-500">Pilih file baru atau ganti URL jika ingin memperbarui poster.</p>
+                        </div>
+                    </div>
+
                     @error('poster_path') <span class="text-rose-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                    @error('poster_url') <span class="text-rose-500 text-xs mt-1 block">{{ $message }}</span> @enderror
                 </div>
+
+                <script>
+                    function previewOrgPosterFile(input) {
+                        if (input.files && input.files[0]) {
+                            const reader = new FileReader();
+                            reader.onload = function(e) {
+                                document.getElementById('org_poster_preview_img').src = e.target.result;
+                            }
+                            reader.readAsDataURL(input.files[0]);
+                        }
+                    }
+
+                    function previewOrgPosterUrl(url) {
+                        if (url && url.trim().length > 5) {
+                            document.getElementById('org_poster_preview_img').src = url;
+                        }
+                    }
+                </script>
 
                 <!-- Description -->
                 <div class="md:col-span-2">

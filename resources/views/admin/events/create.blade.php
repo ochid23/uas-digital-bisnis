@@ -68,11 +68,54 @@
         </div>
 
         <div>
-            <label class="block text-sm font-bold text-zinc-300 mb-2 uppercase tracking-wide">Poster Event (Opsional)</label>
-            <input type="file" name="poster" accept="image/*" 
-                class="w-full px-5 py-4 bg-zinc-950 border-2 border-zinc-800 text-zinc-400 rounded-2xl focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition font-medium file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-indigo-500/10 file:text-indigo-400 hover:file:bg-indigo-500/20 cursor-pointer">
+            <label class="block text-sm font-bold text-zinc-300 mb-2 uppercase tracking-wide">Poster Event (Dinamis File / Link URL)</label>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+                <div>
+                    <span class="text-xs font-bold text-zinc-400 block mb-1">Opsi A: Upload File dari Perangkat</span>
+                    <input type="file" name="poster" id="poster_file_input" accept="image/*" onchange="previewPosterFile(this)"
+                        class="w-full px-4 py-3 bg-zinc-950 border-2 border-zinc-800 text-zinc-400 rounded-2xl focus:ring-1 focus:ring-indigo-500 outline-none text-xs file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-500/10 file:text-indigo-400 cursor-pointer">
+                </div>
+                <div>
+                    <span class="text-xs font-bold text-zinc-400 block mb-1">Opsi B: Tempel Link URL Gambar Online</span>
+                    <input type="url" name="poster_url" id="poster_url_input" value="{{ old('poster_url') }}" placeholder="https://images.unsplash.com/..." oninput="previewPosterUrl(this.value)"
+                        class="w-full px-4 py-3.5 bg-zinc-950 border-2 border-zinc-800 text-white rounded-2xl focus:ring-1 focus:ring-indigo-500 outline-none text-xs placeholder-zinc-600 font-medium">
+                </div>
+            </div>
+            
+            <!-- Live Preview Container -->
+            <div id="poster_preview_box" class="hidden mt-3 p-3 bg-zinc-950 border border-zinc-800 rounded-2xl flex items-center gap-4">
+                <img id="poster_preview_img" src="" class="w-16 h-20 rounded-xl object-cover border border-zinc-700 shadow-md">
+                <div>
+                    <p class="text-xs font-bold text-emerald-400">✓ Pratinjau Gambar Berhasil Dimuat</p>
+                    <p class="text-[11px] text-zinc-500">Poster ini akan ditampilkan secara dinamis di seluruh halaman acara.</p>
+                </div>
+            </div>
+
             @error('poster') <span class="text-rose-500 text-sm mt-1 block">{{ $message }}</span> @enderror
+            @error('poster_url') <span class="text-rose-500 text-sm mt-1 block">{{ $message }}</span> @enderror
         </div>
+
+        <script>
+            function previewPosterFile(input) {
+                if (input.files && input.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        document.getElementById('poster_preview_img').src = e.target.result;
+                        document.getElementById('poster_preview_box').classList.remove('hidden');
+                    }
+                    reader.readAsDataURL(input.files[0]);
+                }
+            }
+
+            function previewPosterUrl(url) {
+                if (url && url.trim().length > 5) {
+                    document.getElementById('poster_preview_img').src = url;
+                    document.getElementById('poster_preview_box').classList.remove('hidden');
+                } else {
+                    document.getElementById('poster_preview_box').classList.add('hidden');
+                }
+            }
+        </script>
 
         <div class="pt-6 flex justify-end gap-4 border-t border-zinc-800">
             <a href="{{ route('admin.events.index') }}" class="px-6 py-4 text-zinc-400 font-bold hover:text-white hover:bg-zinc-800 rounded-2xl transition">Batal</a>

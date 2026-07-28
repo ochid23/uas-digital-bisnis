@@ -32,15 +32,17 @@ class EventController extends Controller
             'date'        => 'required|date',
             'location'    => 'required|string|max:255',
             'price'       => 'required|numeric|min:0',
-            'stock'       => 'required|integer|min:0', // Validasi stock ditambahkan
-            'poster_path' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Ubah ke poster_path
+            'stock'       => 'required|integer|min:0',
+            'poster_path' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+            'poster_url'  => 'nullable|url|max:1000'
         ]);
 
         $validatedData['organizer_id'] = Auth::id();
         $validatedData['status'] = 'pending';
 
-        // Proses upload gambar menggunakan nama kolom yang benar
-        if ($request->hasFile('poster_path')) {
+        if ($request->filled('poster_url')) {
+            $validatedData['poster_path'] = $request->poster_url;
+        } elseif ($request->hasFile('poster_path')) {
             $validatedData['poster_path'] = $request->file('poster_path')->store('posters', 'public');
         }
 
@@ -82,16 +84,18 @@ class EventController extends Controller
             'location'    => 'required|string|max:255',
             'price'       => 'required|numeric|min:0',
             'stock'       => 'required|integer|min:0',
-            'poster_path' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'poster_path' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+            'poster_url'  => 'nullable|url|max:1000'
         ]);
 
         // Reset status ke pending jika diedit agar Admin meninjau kembali
         $validatedData['status'] = 'pending';
         $validatedData['rejection_reason'] = null;
 
-        // Proses upload gambar baru dan hapus gambar lama
-        if ($request->hasFile('poster_path')) {
-            if ($event->poster_path) {
+        if ($request->filled('poster_url')) {
+            $validatedData['poster_path'] = $request->poster_url;
+        } elseif ($request->hasFile('poster_path')) {
+            if ($event->poster_path && !str_starts_with($event->poster_path, 'http')) {
                 Storage::disk('public')->delete($event->poster_path);
             }
             $validatedData['poster_path'] = $request->file('poster_path')->store('posters', 'public');
