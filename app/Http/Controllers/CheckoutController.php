@@ -15,6 +15,10 @@ class CheckoutController extends Controller
 {
     public function create(Event $event)
     {
+        if ($event->status && $event->status !== 'approved') {
+            return redirect()->route('home')->with('error', 'Event ini belum disetujui oleh Admin dan belum terbuka untuk pemesanan.');
+        }
+
         // Mengambil daftar kategori untuk keperluan menu footer
         $categories = \App\Models\Category::all();
 

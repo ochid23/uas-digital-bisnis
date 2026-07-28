@@ -11,17 +11,37 @@ use Illuminate\Support\Facades\Auth;
 
 class EventController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $query = Event::with('category');
+        $query = Event::with(['category', 'organizer']);
         
-        // Filter Multi-Tenant: Organizer hanya melihat event miliknya
-        if (auth::user()->role !== 'admin') {
-            $query->where('organizer_id', auth::id());
+        // Filter Multi-Tenant: Organizer hanya melihat event miliknya jika diakses lewat rute ini
+        if (Auth::user()->role !== 'admin') {
+            $query->where('organizer_id', Auth::id());
         }
 
-        $events = $query->latest()->paginate(10);
-        return view('admin.events.index', compact('events'));
+        // Filter berdasarkan Tab Status
+        $statusFilter = $request->query('status', 'all');
+        if ($statusFilter === 'pending') {
+            $query->where('status', 'pending');
+        } elseif ($statusFilter === 'approved') {
+            $query->where(function ($q) {
+                $q->where('status', 'approved')->orWhereNull('status');
+            });
+        } elseif ($statusFilter === 'rejected') {
+            $query->where('status', 'rejected');
+        }
+
+        $events = $query->latest()->paginate(10)->withQueryString();
+
+        // Hitung total pending untuk informasi badge tab
+        $pendingCount = Event::where('status', 'pending')->count();
+        $approvedCount = Event::where(function ($q) {
+            $q->where('status', 'approved')->orWhereNull('status');
+        })->count();
+        $rejectedCount = Event::where('status', 'rejected')->count();
+
+        return view('admin.events.index', compact('events', 'statusFilter', 'pendingCount', 'approvedCount', 'rejectedCount'));
     }
 
     public function create()
@@ -47,12 +67,13 @@ class EventController extends Controller
             $data['poster_path'] = $request->file('poster')->store('posters', 'public');
         }
 
-        // Set organizer_id berdasarkan user yang sedang login
-        $data['organizer_id'] = auth::id();
+        // Event yang dibuat langsung oleh Admin otomatis disetujui
+        $data['organizer_id'] = Auth::id();
+        $data['status'] = 'approved';
 
         Event::create($data);
 
-        return redirect()->route('admin.events.index')->with('success', 'Data Event berhasil ditambahkan.');
+        return redirect()->route('admin.events.index')->with('success', 'Data Event berhasil ditambahkan dan otomatis disetujui (ACC).');
     }
 
     public function edit(Event $event)
@@ -83,6 +104,32 @@ class EventController extends Controller
 
         $event->update($data);
         return redirect()->route('admin.events.index')->with('success', 'Event berhasil diperbarui.');
+    }
+
+    public function approve(Event $event)
+    {
+        $event->update([
+            'status' => 'approved',
+            'rejection_reason' => null
+        ]);
+
+        return redirect()->back()->with('success', "Event '{$event->title}' berhasil disetujui (ACC) dan sekarang tampil publik.");
+    }
+
+    public function reject(Request $request, Event $event)
+    {
+        $request->validate([
+            'rejection_reason' => 'required|string|max:1000'
+        ], [
+            'rejection_reason.required' => 'Alasan penolakan harus diisi.'
+        ]);
+
+        $event->update([
+            'status' => 'rejected',
+            'rejection_reason' => $request->rejection_reason
+        ]);
+
+        return redirect()->back()->with('success', "Event '{$event->title}' telah ditolak.");
     }
 
     public function destroy(Event $event)

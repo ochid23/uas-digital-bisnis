@@ -66,6 +66,10 @@ class DashboardController extends Controller
         // Label bulan baku untuk sumbu X pada grafik
         $months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
 
+        // Menghitung Jumlah Event Menunggu Persetujuan (ACC)
+        $pendingEventsCount = Event::where('status', 'pending')->count();
+        $pendingEventsList = Event::with('organizer')->where('status', 'pending')->latest()->take(5)->get();
+
         // Kembalikan semua variabel ke halaman view (termasuk yang baru kita buat)
         return view('admin.dashboard', compact(
             'totalRevenue', 
@@ -75,7 +79,9 @@ class DashboardController extends Controller
             'recentTransactions',
             'userChartData',
             'eventChartData',
-            'months'
+            'months',
+            'pendingEventsCount',
+            'pendingEventsList'
         ));
     }
 }

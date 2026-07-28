@@ -26,6 +26,7 @@
                 <thead class="bg-zinc-950/50 text-zinc-500 uppercase text-[10px] font-black tracking-widest border-b border-zinc-800">
                     <tr>
                         <th class="px-8 py-5">Judul Event & Lokasi</th>
+                        <th class="px-6 py-5">Status ACC</th>
                         <th class="px-6 py-5">Tanggal</th>
                         <th class="px-6 py-5">Harga</th>
                         <th class="px-6 py-5">Stok</th>
@@ -41,6 +42,30 @@
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                                     {{ $event->location }}
                                 </div>
+                            </td>
+                            <td class="px-6 py-6">
+                                @if($event->status === 'pending')
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 border border-amber-500/30 text-amber-400 rounded-xl text-xs font-black animate-pulse">
+                                        <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                                        Menunggu ACC
+                                    </span>
+                                    <p class="text-[11px] text-zinc-500 mt-1">Belum dipublikasikan</p>
+                                @elseif($event->status === 'rejected')
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-500/10 border border-rose-500/30 text-rose-400 rounded-xl text-xs font-black">
+                                        <span class="w-2 h-2 rounded-full bg-rose-400"></span>
+                                        Ditolak Admin
+                                    </span>
+                                    @if($event->rejection_reason)
+                                        <div class="mt-2 p-2 bg-rose-500/10 border border-rose-500/20 rounded-lg text-xs text-rose-300 max-w-xs">
+                                            <span class="font-bold block">Alasan:</span> {{ $event->rejection_reason }}
+                                        </div>
+                                    @endif
+                                @else
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-xl text-xs font-black">
+                                        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                                        Disetujui (Publik)
+                                    </span>
+                                @endif
                             </td>
                             <td class="px-6 py-6 text-sm text-zinc-400 font-medium">
                                 {{ \Carbon\Carbon::parse($event->date)->format('d M Y, H:i') }}
@@ -68,7 +93,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="px-6 py-16 text-center">
+                            <td colspan="6" class="px-6 py-16 text-center">
                                 <div class="w-20 h-20 bg-zinc-800/50 rounded-full flex items-center justify-center mx-auto mb-4 border border-zinc-700/50">
                                     <svg class="w-10 h-10 text-zinc-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
                                 </div>

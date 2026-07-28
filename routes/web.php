@@ -187,6 +187,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('transactions', [TransactionController::class, 'index'])->name('transactions.index');
         
+        Route::post('events/{event}/approve', [EventAdminController::class, 'approve'])->name('events.approve');
+        Route::post('events/{event}/reject', [EventAdminController::class, 'reject'])->name('events.reject');
         Route::resource('events', EventAdminController::class);
         Route::resource('categories', CategoryController::class);
 

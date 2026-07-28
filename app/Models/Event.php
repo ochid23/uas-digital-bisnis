@@ -10,8 +10,26 @@ class Event extends Model
 {
     protected $fillable = [
         'organizer_id', 'category_id', 'title', 'description', 'date',
-        'location', 'price', 'stock', 'poster_path'
+        'location', 'price', 'stock', 'poster_path', 'status', 'rejection_reason'
     ];
+
+    public function scopeApproved($query)
+    {
+        return $query->where(function ($q) {
+            $q->where('status', 'approved')
+              ->orWhereNull('status');
+        });
+    }
+
+    public function scopePending($query)
+    {
+        return $query->where('status', 'pending');
+    }
+
+    public function scopeRejected($query)
+    {
+        return $query->where('status', 'rejected');
+    }
 
     protected $casts = [
         'date' => 'datetime',

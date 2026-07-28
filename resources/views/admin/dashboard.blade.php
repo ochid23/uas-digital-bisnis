@@ -5,6 +5,21 @@
 @section('content')
 <!-- KARTU RINGKASAN STATISTIK -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+    <a href="{{ route('admin.events.index', ['status' => 'pending']) }}" class="bg-zinc-900 p-6 rounded-3xl border border-amber-500/30 shadow-sm hover:border-amber-500 transition group block">
+        <div class="w-12 h-12 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+        </div>
+        <div class="flex justify-between items-center mb-1">
+            <p class="text-amber-400 text-xs font-bold uppercase tracking-wider">Pending ACC Event</p>
+            @if($pendingEventsCount > 0)
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping"></span>
+            @endif
+        </div>
+        <h3 class="text-2xl font-black text-white">{{ $pendingEventsCount }} Event</h3>
+    </a>
     <div class="bg-zinc-900 p-6 rounded-3xl border border-zinc-800 shadow-sm hover:border-zinc-700 transition">
         <div class="w-12 h-12 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded-2xl flex items-center justify-center mb-4">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -28,10 +43,10 @@
         <h3 class="text-2xl font-black text-white">{{ number_format($ticketsSold, 0, ',', '.') }}</h3>
     </div>
     <div class="bg-zinc-900 p-6 rounded-3xl border border-zinc-800 shadow-sm hover:border-zinc-700 transition">
-        <div class="w-12 h-12 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-2xl flex items-center justify-center mb-4">
+        <div class="w-12 h-12 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded-2xl flex items-center justify-center mb-4">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
             </svg>
         </div>
         <p class="text-zinc-500 text-xs font-bold uppercase tracking-wider mb-1">Event Aktif</p>
@@ -68,6 +83,61 @@
         </div>
     </div>
 </div>
+
+<!-- SEKSI PERSETUJUAN (ACC) EVENT ORGANIZER -->
+@if($pendingEventsCount > 0)
+<div class="bg-zinc-900 rounded-3xl border border-amber-500/30 shadow-lg shadow-amber-500/5 overflow-hidden mb-10">
+    <div class="p-6 bg-amber-500/10 border-b border-amber-500/20 flex justify-between items-center">
+        <div class="flex items-center gap-3">
+            <span class="w-3 h-3 rounded-full bg-amber-400 animate-ping"></span>
+            <div>
+                <h3 class="font-black text-lg text-white">Pengajuan Event Menunggu ACC Admin</h3>
+                <p class="text-xs text-amber-400/80 font-medium">Terdapat {{ $pendingEventsCount }} event baru dari Organizer yang membutuhkan persetujuan Anda.</p>
+            </div>
+        </div>
+        <a href="{{ route('admin.events.index', ['status' => 'pending']) }}" class="px-4 py-2 bg-amber-500 text-zinc-950 rounded-xl font-bold text-xs hover:bg-amber-400 transition">
+            Buka Semua Pending
+        </a>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead class="bg-zinc-950/50 text-zinc-500 uppercase text-[10px] font-black tracking-widest">
+                <tr>
+                    <th class="px-6 py-4">Judul Event</th>
+                    <th class="px-6 py-4">Organizer</th>
+                    <th class="px-6 py-4">Tanggal & Harga</th>
+                    <th class="px-6 py-4 text-right">Aksi ACC</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-zinc-800 border-t border-zinc-800">
+                @foreach($pendingEventsList as $pEvent)
+                <tr class="hover:bg-zinc-800/40 transition">
+                    <td class="px-6 py-4">
+                        <p class="font-bold text-white text-sm mb-0.5">{{ $pEvent->title }}</p>
+                        <p class="text-xs text-zinc-500">{{ $pEvent->location }}</p>
+                    </td>
+                    <td class="px-6 py-4 text-xs font-semibold text-zinc-300">
+                        {{ $pEvent->organizer->name ?? 'Organizer' }}
+                    </td>
+                    <td class="px-6 py-4">
+                        <p class="text-xs font-medium text-zinc-400 mb-0.5">{{ \Carbon\Carbon::parse($pEvent->date)->format('d M Y, H:i') }}</p>
+                        <p class="text-xs font-bold text-indigo-400">Rp {{ number_format($pEvent->price, 0, ',', '.') }}</p>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <form action="{{ route('admin.events.approve', $pEvent->id) }}" method="POST" class="inline-block">
+                            @csrf
+                            <button type="submit" onclick="return confirm('ACC event ini?')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-xs shadow-md shadow-emerald-600/20 transition active:scale-95">
+                                Setujui (ACC)
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+</div>
+@endif
 
 <!-- TABEL RIWAYAT TRANSAKSI TERAKHIR -->
 <div class="bg-zinc-900 rounded-3xl border border-zinc-800 shadow-sm overflow-hidden mb-10">

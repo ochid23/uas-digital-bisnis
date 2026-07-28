@@ -37,6 +37,7 @@ class EventController extends Controller
         ]);
 
         $validatedData['organizer_id'] = Auth::id();
+        $validatedData['status'] = 'pending';
 
         // Proses upload gambar menggunakan nama kolom yang benar
         if ($request->hasFile('poster_path')) {
@@ -45,7 +46,7 @@ class EventController extends Controller
 
         Event::create($validatedData);
 
-        return redirect()->route('organizer.events.index')->with('success', 'Event berhasil dibuat!');
+        return redirect()->route('organizer.events.index')->with('success', 'Event berhasil dibuat dan menunggu persetujuan (ACC) dari Admin!');
     }
 
     public function show(Event $event)
@@ -84,6 +85,10 @@ class EventController extends Controller
             'poster_path' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
+        // Reset status ke pending jika diedit agar Admin meninjau kembali
+        $validatedData['status'] = 'pending';
+        $validatedData['rejection_reason'] = null;
+
         // Proses upload gambar baru dan hapus gambar lama
         if ($request->hasFile('poster_path')) {
             if ($event->poster_path) {
@@ -94,7 +99,7 @@ class EventController extends Controller
 
         $event->update($validatedData);
 
-        return redirect()->route('organizer.events.index')->with('success', 'Event berhasil diperbarui!');
+        return redirect()->route('organizer.events.index')->with('success', 'Event berhasil diperbarui dan diajukan ulang untuk persetujuan (ACC) Admin.');
     }
 
     public function destroy(Event $event)

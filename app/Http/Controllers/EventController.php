@@ -16,6 +16,14 @@ class EventController extends Controller
 
     public function show(Event $event)
     {
+        // Cek jika event belum disetujui (status != approved)
+        if ($event->status && $event->status !== 'approved') {
+            $user = auth()->user();
+            if (!$user || ($user->role !== 'admin' && $user->id !== $event->organizer_id)) {
+                abort(404, 'Event ini belum disetujui oleh Admin.');
+            }
+        }
+
         // Mengambil daftar kategori untuk keperluan menu (jika dibutuhkan)
         $categories = Category::all();
         

@@ -14,8 +14,9 @@ class HomeController extends Controller
         // 1. Ambil semua jenis kategori untuk tampilan filter tab button 
         $categories = Category::all();
 
-        // 2. Buat kueri dasar untuk mengambil event
-        $query = Event::with('category')
+        // 2. Buat kueri dasar untuk mengambil event yang sudah disetujui (ACC)
+        $query = Event::approved()
+                      ->with('category')
                       ->orderBy('date', 'asc');
 
         // 3. Filter query jika url memiliki parameter pencarian spesifik ?category=...

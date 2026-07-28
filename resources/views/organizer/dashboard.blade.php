@@ -90,6 +90,7 @@
                             <th class="px-8 py-5 w-16">No</th>
                             <th class="px-8 py-5">Poster</th>
                             <th class="px-8 py-5">Event</th>
+                            <th class="px-8 py-5">Status ACC</th>
                             <th class="px-8 py-5">Harga / Stok</th>
                             <th class="px-8 py-5 text-right">Aksi</th>
                         </tr>
@@ -106,6 +107,22 @@
                             <td class="px-8 py-6">
                                 <p class="font-black text-zinc-100 text-base mb-1">{{ $event->title ?? $event->name }}</p>
                                 <p class="text-xs text-zinc-500 font-medium">{{ $event->category->name ?? '-' }} • {{ \Carbon\Carbon::parse($event->date)->format('d M Y, H:i') }}</p>
+                            </td>
+
+                            <td class="px-8 py-6">
+                                @if($event->status === 'pending')
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500/10 border border-amber-500/30 text-amber-400 rounded-xl text-xs font-black animate-pulse">
+                                        Menunggu ACC
+                                    </span>
+                                @elseif($event->status === 'rejected')
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-500/10 border border-rose-500/30 text-rose-400 rounded-xl text-xs font-black">
+                                        Ditolak Admin
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-xl text-xs font-black">
+                                        Disetujui
+                                    </span>
+                                @endif
                             </td>
                             
                             <td class="px-8 py-6">
