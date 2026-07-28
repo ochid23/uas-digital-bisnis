@@ -111,8 +111,8 @@ class CheckoutController extends Controller
         // --- 5. INTEGRASI SNAP MIDTRANS (UNTUK TIKET BERBAYAR) ---
 
         // Konfigurasi Kredensial Environment Midtrans
-        \Midtrans\Config::$serverKey = env('MIDTRANS_SERVER_KEY');
-        \Midtrans\Config::$isProduction = false; // Mode Sandbox
+        \Midtrans\Config::$serverKey = config('midtrans.server_key');
+        \Midtrans\Config::$isProduction = config('midtrans.is_production');
         \Midtrans\Config::$isSanitized = true;
         \Midtrans\Config::$is3ds = true;
 
@@ -189,8 +189,8 @@ class CheckoutController extends Controller
         }
 
         // Konfigurasi Midtrans untuk mengecek status transaksi langsung ke API (Hanya untuk yang berbayar)
-        \Midtrans\Config::$serverKey = env('MIDTRANS_SERVER_KEY');
-        \Midtrans\Config::$isProduction = false;
+        \Midtrans\Config::$serverKey = config('midtrans.server_key');
+        \Midtrans\Config::$isProduction = config('midtrans.is_production');
         \Midtrans\Config::$isSanitized = true;
         \Midtrans\Config::$is3ds = true;
 
