@@ -51,8 +51,9 @@ class GoogleController extends Controller
                 ]);
             }
 
-            // Login-kan user tersebut ke sistem Laravel
-            Auth::login($user);
+            // Login-kan user dengan persistent remember-me (true) & regenerasi sesi
+            Auth::login($user, true);
+            request()->session()->regenerate();
 
             // ========================================================
             // TRAFFIC CONTROLLER: ATUR ARAH REDIRECT BERDASARKAN ROLE
@@ -73,7 +74,7 @@ class GoogleController extends Controller
 
         } catch (\Exception $e) {
             // Jika terjadi error, kembalikan ke halaman login dengan pesan error
-            return redirect('/login')->with('error', 'Gagal login dengan Google. Silakan coba lagi.');
+            return redirect('/login')->with('error', 'Gagal login dengan Google: ' . $e->getMessage());
         }
     }
 }
