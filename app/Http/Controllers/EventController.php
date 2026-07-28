@@ -50,25 +50,36 @@ class EventController extends Controller
         // Lepaskan otomatis transaksi pending yang sudah kadaluarsa (> 15 menit)
         Transaction::releaseExpired(15);
 
-        // Query transaksi user berbasis user_id maupun customer_email
+        // Query transaksi user berbasis user_id, customer_email, maupun customer_name (Fallback multi-akun Google)
         $query = Transaction::query();
 
-        if (Schema::hasColumn('transactions', 'user_id')) {
-            $query->where(function ($q) use ($user) {
-                $q->where('user_id', $user->id)
-                  ->orWhere('customer_email', $user->email)
-                  ->orWhereRaw('LOWER(customer_email) = ?', [strtolower(trim($user->email))]);
-            });
-        } else {
-            $query->where(function ($q) use ($user) {
-                $q->where('customer_email', $user->email)
-                  ->orWhereRaw('LOWER(customer_email) = ?', [strtolower(trim($user->email))]);
-            });
-        }
+        $userName = trim($user->name);
+        $userEmail = strtolower(trim($user->email));
+
+        $query->where(function ($q) use ($user, $userEmail, $userName) {
+            if (Schema::hasColumn('transactions', 'user_id')) {
+                $q->where('user_id', $user->id);
+            }
+            $q->orWhere('customer_email', $user->email)
+              ->orWhereRaw('LOWER(customer_email) = ?', [$userEmail]);
+
+            if (!empty($userName) && strlen($userName) > 2) {
+                $q->orWhereRaw('LOWER(customer_name) = ?', [strtolower($userName)]);
+            }
+        });
 
         $transactions = $query->with(['event', 'event.category'])
             ->latest()
             ->get();
+
+        // Hubungkan user_id secara otomatis ke transaksi yang cocok jika belum terikat
+        if (Schema::hasColumn('transactions', 'user_id')) {
+            foreach ($transactions as $trx) {
+                if (!$trx->user_id) {
+                    $trx->update(['user_id' => $user->id]);
+                }
+            }
+        }
 
         return view('ticket', compact('transactions'));
     }
