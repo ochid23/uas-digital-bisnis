@@ -58,8 +58,11 @@
                 <!-- Tampilan User Sudah Login -->
                 <div class="flex items-center gap-3 pl-4 border-l border-zinc-800">
                     <div class="flex items-center gap-2.5">
-                        <img src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name) }}&background=6366f1&color=fff" 
-                             class="w-9 h-9 rounded-xl border border-indigo-500/30 object-cover" alt="User Avatar">
+                        <div class="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shrink-0">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                            </svg>
+                        </div>
                         <div class="hidden sm:block text-left">
                             <p class="text-xs font-bold text-white leading-tight truncate max-w-[120px]">{{ Auth::user()->name }}</p>
                             <p class="text-[10px] text-indigo-400 font-bold uppercase tracking-wider">{{ Auth::user()->role === 'admin' ? 'Superadmin' : (Auth::user()->role === 'organizer' ? 'Organizer' : 'Pembeli') }}</p>

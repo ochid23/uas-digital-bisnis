@@ -97,8 +97,10 @@
                     <p class="font-bold text-white">Admin</p>
                     <p class="text-xs text-zinc-500 font-bold uppercase tracking-wider">Superadmin</p>
                 </div>
-                <div class="w-12 h-12 bg-zinc-800 rounded-2xl shadow-sm border border-zinc-700 flex items-center justify-center p-1">
-                    <img src="https://ui-avatars.com/api/?name=admin&background=6366f1&color=fff" class="rounded-xl">
+                <div class="w-10 h-10 bg-indigo-500/10 rounded-2xl shadow-sm border border-indigo-500/30 flex items-center justify-center text-indigo-400 shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    </svg>
                 </div>
             </div>
         </header>

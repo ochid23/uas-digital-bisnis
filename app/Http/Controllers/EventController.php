@@ -38,6 +38,16 @@ class EventController extends Controller
 
     public function ticket()
     {
-        return view('ticket');
+        $user = auth()->user();
+        if (!$user) {
+            return redirect()->route('google.login');
+        }
+
+        $transactions = \App\Models\Transaction::where('customer_email', $user->email)
+            ->with('event')
+            ->latest()
+            ->get();
+
+        return view('ticket', compact('transactions'));
     }
 }

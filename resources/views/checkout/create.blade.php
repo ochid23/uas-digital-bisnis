@@ -73,7 +73,11 @@
             @auth
                 <div class="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl mb-6 flex items-center justify-between">
                     <div class="flex items-center gap-3">
-                        <img src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name) }}&background=10b981&color=fff" class="w-8 h-8 rounded-full border border-emerald-500/30">
+                        <div class="w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                            </svg>
+                        </div>
                         <div>
                             <p class="text-xs font-bold text-emerald-400">Tersambung sebagai {{ Auth::user()->name }}</p>
                             <p class="text-xs text-zinc-400">{{ Auth::user()->email }}</p>
