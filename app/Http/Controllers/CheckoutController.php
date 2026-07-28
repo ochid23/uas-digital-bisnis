@@ -67,7 +67,7 @@ class CheckoutController extends Controller
                     'event_id' => $event->id,
                     'order_id' => $orderId,
                     'customer_name' => trim($request->customer_name),
-                    'customer_email' => trim($request->customer_email),
+                    'customer_email' => Auth::check() ? Auth::user()->email : trim($request->customer_email),
                     'customer_phone' => trim($request->customer_phone),
                     'total_price' => $totalPrice,
                     'status' => ($totalPrice == 0) ? 'success' : 'pending',
