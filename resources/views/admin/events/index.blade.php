@@ -52,7 +52,7 @@
                     <td class="px-6 py-6 font-bold text-zinc-500 text-sm">{{ $events->firstItem() + $index }}</td>
                     
                     <td class="px-6 py-6">
-                        <img src="{{ $event->poster_url }}" class="w-14 h-18 rounded-xl object-cover shadow-md border border-zinc-700/50">
+                        <img src="{{ $event->poster_url }}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=600&auto=format&fit=crop&q=80';" class="w-14 h-18 rounded-xl object-cover shadow-md border border-zinc-700/50">
                     </td>
                     
                     <td class="px-6 py-6">

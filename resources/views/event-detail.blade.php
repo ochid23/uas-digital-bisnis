@@ -5,6 +5,7 @@
         <div class="lg:col-span-1">
             <div class="sticky top-32">
                 <img src="{{ $event->poster_url }}" alt="{{ $event->title }}"
+                    onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=600&auto=format&fit=crop&q=80';"
                     class="w-full rounded-[2.5rem] shadow-2xl shadow-black/50 border-4 border-zinc-800 object-cover aspect-[3/4]">
                 
                 <div class="mt-8 p-6 bg-zinc-900 rounded-3xl border border-zinc-800 shadow-sm">

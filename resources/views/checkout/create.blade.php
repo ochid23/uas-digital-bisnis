@@ -25,7 +25,7 @@
             <h3 class="text-xl font-bold mb-6 border-b border-zinc-800 pb-4 text-white">Pesanan Anda</h3>
             <div class="flex gap-6 items-start">
                 <img src="{{ $event->poster_url }}"
-                alt="Event" class="w-24 h-24 rounded-2xl object-cover border border-zinc-700">
+                alt="Event" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=600&auto=format&fit=crop&q=80';" class="w-24 h-24 rounded-2xl object-cover border border-zinc-700">
                 <div>
                     <h4 class="font-extrabold text-lg text-white">{{ $event->title }}</h4>
                     <p class="text-zinc-400">{{ $event->date->format('d M Y') }} • {{ $event->location }}</p>

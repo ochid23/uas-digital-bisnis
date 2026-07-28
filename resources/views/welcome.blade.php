@@ -85,6 +85,7 @@
                 <div class="relative overflow-hidden aspect-[3/4]">
                     <img src="{{ $event->poster_url }}" 
                          alt="{{ $event->title }}"
+                         onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=600&auto=format&fit=crop&q=80';"
                          class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-90 group-hover:opacity-100">
                     
                     <div class="absolute inset-0 bg-gradient-to-t from-zinc-900 via-transparent to-transparent opacity-80"></div>

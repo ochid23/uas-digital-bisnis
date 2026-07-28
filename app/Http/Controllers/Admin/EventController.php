@@ -67,7 +67,8 @@ class EventController extends Controller
         if ($request->filled('poster_url')) {
             $data['poster_path'] = $request->poster_url;
         } elseif ($request->hasFile('poster')) {
-            $data['poster_path'] = $request->file('poster')->store('posters', 'public');
+            $cdnUrl = \App\Services\ImageUploadService::upload($request->file('poster'));
+            $data['poster_path'] = $cdnUrl ?: $request->file('poster')->store('posters', 'public');
         }
 
         // Event yang dibuat langsung oleh Admin otomatis disetujui
@@ -102,10 +103,15 @@ class EventController extends Controller
         if ($request->filled('poster_url')) {
             $data['poster_path'] = $request->poster_url;
         } elseif ($request->hasFile('poster')) {
-            if ($event->poster_path && Storage::disk('public')->exists($event->poster_path)) {
-                Storage::disk('public')->delete($event->poster_path);
+            $cdnUrl = \App\Services\ImageUploadService::upload($request->file('poster'));
+            if ($cdnUrl) {
+                $data['poster_path'] = $cdnUrl;
+            } else {
+                if ($event->poster_path && Storage::disk('public')->exists($event->poster_path)) {
+                    Storage::disk('public')->delete($event->poster_path);
+                }
+                $data['poster_path'] = $request->file('poster')->store('posters', 'public');
             }
-            $data['poster_path'] = $request->file('poster')->store('posters', 'public');
         }
 
         $event->update($data);

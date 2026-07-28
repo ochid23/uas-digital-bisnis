@@ -43,7 +43,8 @@ class EventController extends Controller
         if ($request->filled('poster_url')) {
             $validatedData['poster_path'] = $request->poster_url;
         } elseif ($request->hasFile('poster_path')) {
-            $validatedData['poster_path'] = $request->file('poster_path')->store('posters', 'public');
+            $cdnUrl = \App\Services\ImageUploadService::upload($request->file('poster_path'));
+            $validatedData['poster_path'] = $cdnUrl ?: $request->file('poster_path')->store('posters', 'public');
         }
 
         Event::create($validatedData);
@@ -95,10 +96,15 @@ class EventController extends Controller
         if ($request->filled('poster_url')) {
             $validatedData['poster_path'] = $request->poster_url;
         } elseif ($request->hasFile('poster_path')) {
-            if ($event->poster_path && !str_starts_with($event->poster_path, 'http')) {
-                Storage::disk('public')->delete($event->poster_path);
+            $cdnUrl = \App\Services\ImageUploadService::upload($request->file('poster_path'));
+            if ($cdnUrl) {
+                $validatedData['poster_path'] = $cdnUrl;
+            } else {
+                if ($event->poster_path && !str_starts_with($event->poster_path, 'http')) {
+                    Storage::disk('public')->delete($event->poster_path);
+                }
+                $validatedData['poster_path'] = $request->file('poster_path')->store('posters', 'public');
             }
-            $validatedData['poster_path'] = $request->file('poster_path')->store('posters', 'public');
         }
 
         $event->update($validatedData);
