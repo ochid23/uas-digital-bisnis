@@ -44,6 +44,7 @@ class EventController extends Controller
         }
 
         $transactions = \App\Models\Transaction::where('customer_email', $user->email)
+            ->orWhereRaw('LOWER(customer_email) = ?', [strtolower($user->email)])
             ->with('event')
             ->latest()
             ->get();
