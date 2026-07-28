@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\Category;
+use App\Models\Transaction;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 
 class EventController extends Controller
 {
@@ -16,6 +18,9 @@ class EventController extends Controller
 
     public function show(Event $event)
     {
+        // Auto-release expired ticket reservations
+        Transaction::releaseExpired(15);
+
         // Cek jika event belum disetujui (status != approved)
         if ($event->status && $event->status !== 'approved') {
             $user = auth()->user();
@@ -24,10 +29,9 @@ class EventController extends Controller
             }
         }
 
-        // Mengambil daftar kategori untuk keperluan menu (jika dibutuhkan)
+        // Mengambil daftar kategori untuk keperluan menu
         $categories = Category::all();
         
-        // Me-render view dengan membawa data kategori dan data spesifik acara
         return view('event-detail', compact('categories', 'event'));
     }
 
@@ -43,9 +47,26 @@ class EventController extends Controller
             return redirect()->route('google.login');
         }
 
-        $transactions = \App\Models\Transaction::where('customer_email', $user->email)
-            ->orWhereRaw('LOWER(customer_email) = ?', [strtolower($user->email)])
-            ->with('event')
+        // Lepaskan otomatis transaksi pending yang sudah kadaluarsa (> 15 menit)
+        Transaction::releaseExpired(15);
+
+        // Query transaksi user berbasis user_id maupun customer_email
+        $query = Transaction::query();
+
+        if (Schema::hasColumn('transactions', 'user_id')) {
+            $query->where(function ($q) use ($user) {
+                $q->where('user_id', $user->id)
+                  ->orWhere('customer_email', $user->email)
+                  ->orWhereRaw('LOWER(customer_email) = ?', [strtolower(trim($user->email))]);
+            });
+        } else {
+            $query->where(function ($q) use ($user) {
+                $q->where('customer_email', $user->email)
+                  ->orWhereRaw('LOWER(customer_email) = ?', [strtolower(trim($user->email))]);
+            });
+        }
+
+        $transactions = $query->with(['event', 'event.category'])
             ->latest()
             ->get();
 

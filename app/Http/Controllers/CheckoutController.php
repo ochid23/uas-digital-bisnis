@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Event;
+use App\Models\Category;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -10,6 +11,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\EventTicketMail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class CheckoutController extends Controller
 {
@@ -19,8 +21,11 @@ class CheckoutController extends Controller
             return redirect()->route('home')->with('error', 'Event ini belum disetujui oleh Admin dan belum terbuka untuk pemesanan.');
         }
 
+        // Jalankan pembersihan reservasi expired secara otomatis
+        Transaction::releaseExpired(15);
+
         // Mengambil daftar kategori untuk keperluan menu footer
-        $categories = \App\Models\Category::all();
+        $categories = Category::all();
 
         return view('checkout.create', compact('event','categories'));
     }
@@ -34,35 +39,45 @@ class CheckoutController extends Controller
             'customer_phone' => 'required|string|max:20',
         ]);
 
+        // Auto release reservasi tiket expired sebelum reservasi baru
+        Transaction::releaseExpired(15);
+
         // 2. Generate Kode TRX (Unik) & Total Harga
         $orderId = 'TRX-' . time() . '-' . Str::random(5);
         $totalPrice = ($event->price == 0) ? 0 : ($event->price + 5000);
 
         $transaction = null;
+        $userId = Auth::id();
 
-        // 3. PESIMISTIC LOCKING & ATOMIC STOCK RESERVATION
-        // Menahan stok (-1) secara langsung saat tombol checkout diklik (mencegah Race Condition)
+        // 3. PESSIMISTIC LOCKING & ATOMIC STOCK RESERVATION (BEST PRACTICE RACE CONDITION)
+        // Menahan stok (-1) secara langsung saat tombol checkout diklik (Reserved Ticket)
         try {
-            DB::transaction(function () use ($request, $event, $orderId, $totalPrice, &$transaction) {
+            DB::transaction(function () use ($request, $event, $orderId, $totalPrice, $userId, &$transaction) {
                 $lockedEvent = Event::where('id', $event->id)->lockForUpdate()->first();
 
                 if (!$lockedEvent || $lockedEvent->stock <= 0) {
                     throw new \Exception('STOK_HABIS');
                 }
 
-                // Tahan (reserve) stok tiket secara otomatis
+                // Tahan (reserve) stok tiket secara otomatis (-1)
                 $lockedEvent->decrement('stock', 1);
 
-                // Rekam transaksi awal (status pending)
-                $transaction = Transaction::create([
+                // Rekam transaksi awal (status pending / success jika gratis)
+                $transactionData = [
                     'event_id' => $event->id,
                     'order_id' => $orderId,
-                    'customer_name' => $request->customer_name,
-                    'customer_email' => $request->customer_email,
-                    'customer_phone' => $request->customer_phone,
+                    'customer_name' => trim($request->customer_name),
+                    'customer_email' => trim($request->customer_email),
+                    'customer_phone' => trim($request->customer_phone),
                     'total_price' => $totalPrice,
                     'status' => ($totalPrice == 0) ? 'success' : 'pending',
-                ]);
+                ];
+
+                if ($userId && \Illuminate\Support\Facades\Schema::hasColumn('transactions', 'user_id')) {
+                    $transactionData['user_id'] = $userId;
+                }
+
+                $transaction = Transaction::create($transactionData);
             });
         } catch (\Exception $e) {
             if ($e->getMessage() === 'STOK_HABIS') {
@@ -93,11 +108,11 @@ class CheckoutController extends Controller
         // ========================================================
 
 
-        // --- 6. INTEGRASI SNAP MIDTRANS (UNTUK TIKET BERBAYAR) ---
+        // --- 5. INTEGRASI SNAP MIDTRANS (UNTUK TIKET BERBAYAR) ---
 
         // Konfigurasi Kredensial Environment Midtrans
         \Midtrans\Config::$serverKey = env('MIDTRANS_SERVER_KEY');
-        \Midtrans\Config::$isProduction = false; // Mode Sandbox!
+        \Midtrans\Config::$isProduction = false; // Mode Sandbox
         \Midtrans\Config::$isSanitized = true;
         \Midtrans\Config::$is3ds = true;
 
@@ -107,7 +122,7 @@ class CheckoutController extends Controller
             CURLOPT_HTTPHEADER => [] 
         );
 
-        // Susun Paket Array Data Transaksi
+        // Susun Paket Array Data Transaksi (termasuk batas expired 15 menit)
         $params = [
             'transaction_details' => [
                 'order_id' => $orderId,
@@ -118,13 +133,18 @@ class CheckoutController extends Controller
                 'email' => $request->customer_email,
                 'phone' => $request->customer_phone,
             ],
+            'expiry' => [
+                'start_time' => date("Y-m-d H:i:s O"),
+                'unit' => 'minute',
+                'duration' => 15
+            ]
         ];
 
         try {
             // Perintah Tembak Generate Snap Token
             $snapToken = \Midtrans\Snap::getSnapToken($params);
 
-            // Update rekaman kita bahwa transaksi terkait sudah memiliki id token pelunasan
+            // Update rekaman kita bahwa transaksi terkait sudah memiliki snap token
             $transaction->update(['snap_token' => $snapToken]);
 
             // Kirim notifikasi WA link pembayaran instan (pemulihan jika tab ditutup)
@@ -145,7 +165,7 @@ class CheckoutController extends Controller
     public function payment($order_id)
     {
         // Mengambil daftar kategori untuk keperluan menu footer
-        $categories = \App\Models\Category::all();
+        $categories = Category::all();
 
         $transaction = Transaction::with('event')->where('order_id', $order_id)->firstOrFail();
         return view('checkout.payment', compact('transaction','categories'));
@@ -154,16 +174,16 @@ class CheckoutController extends Controller
     public function success($order_id)
     {
         // Mengambil daftar kategori untuk keperluan menu footer
-        $categories = \App\Models\Category::all();
+        $categories = Category::all();
 
         $transaction = Transaction::with('event')->where('order_id', $order_id)->firstOrFail();
 
-        // ------------------------------------------------------------
-        // KONDISI BYPASS PADA HALAMAN SUCCESS:
-        // Jika status transaksi sudah 'success' (artinya ini tiket gratis), 
-        // jangan lakukan pengecekan ke API Midtrans karena transaksi ini 
-        // tidak pernah didaftarkan ke Midtrans.
-        // ------------------------------------------------------------
+        // Hubungkan ke user jika belum ada user_id dan user sedang login
+        if (Auth::check() && !$transaction->user_id && \Illuminate\Support\Facades\Schema::hasColumn('transactions', 'user_id')) {
+            $transaction->update(['user_id' => Auth::id()]);
+        }
+
+        // KONDISI BYPASS PADA HALAMAN SUCCESS (Tiket gratis)
         if (strtolower($transaction->status) === 'success') {
              return view('checkout.success', compact('transaction', 'categories'));
         }
@@ -185,12 +205,9 @@ class CheckoutController extends Controller
             $status = \Midtrans\Transaction::status($order_id);
 
             if ($status) {
-                // Mengambil nilai status transaksi
                 $trx_status = is_array($status) ? ($status['transaction_status'] ?? '') : ($status->transaction_status ?? '');
 
-                // Jika API Midtrans mengonfirmasi bahwa transaksi telah berhasil (settlement / capture)
                 if (in_array($trx_status, ['settlement', 'capture'])) {
-                    // Hanya lakukan update jika status di database lokal masih 'pending' (indikasi Webhook tidak masuk)
                     if (strtolower($transaction->status) === 'pending') {
                         $transaction->update(['status' => 'success']);
 
@@ -207,11 +224,18 @@ class CheckoutController extends Controller
                             Log::error('Gagal mengirim WA E-Ticket secara manual (Bypass): ' . $e->getMessage());
                         }
                     }
+                } else if (in_array($trx_status, ['expire', 'cancel', 'deny'])) {
+                    if (strtolower($transaction->status) === 'pending') {
+                        $transaction->update(['status' => ($trx_status === 'expire') ? 'expired' : 'failed']);
+                        if ($transaction->event) {
+                            $transaction->event->increment('stock', 1);
+                        }
+                    }
                 }
             }
         } catch (\Exception $e) {
-            // Jika terjadi error dari API Midtrans (transaksi tidak valid), kembalikan ke beranda
-            return redirect()->route('home')->with('error', 'Transaksi tidak ditemukan atau gagal diproses oleh sistem pembayaran.');
+            // Log warning & lanjut tampilkan halaman sukses
+            Log::warning('Midtrans status check warning: ' . $e->getMessage());
         }
 
         return view('checkout.success', compact('transaction', 'categories'));
