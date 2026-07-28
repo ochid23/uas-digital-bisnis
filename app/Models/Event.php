@@ -41,15 +41,14 @@ class Event extends Model
     public function getPosterUrlAttribute(): string
     {
         if (!$this->poster_path) {
-            return 'https://placehold.co/400x600?text=No+Poster';
+            return 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=600&auto=format&fit=crop&q=80';
         }
 
-        // Jika isi database berupa URL penuh (http:// atau https://)
-        if (str_starts_with($this->poster_path, 'http://') || str_starts_with($this->poster_path, 'https://')) {
+        // Jika isi database berupa Data URI (base64) atau URL penuh (http:// atau https://)
+        if (str_starts_with($this->poster_path, 'data:image') || str_starts_with($this->poster_path, 'http://') || str_starts_with($this->poster_path, 'https://')) {
             return $this->poster_path;
         }
 
-        // Kembalikan URL aset file yang tersimpan di storage publik sesuai database
         return asset('storage/' . ltrim($this->poster_path, '/'));
     }
 

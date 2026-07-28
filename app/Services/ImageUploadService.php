@@ -3,32 +3,29 @@
 namespace App\Services;
 
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class ImageUploadService
 {
     /**
-     * Unggah file gambar ke ImgBB CDN secara permanen.
-     * Jika gagal, kembalikan null agar bisa fallback ke penyimpanan lokal.
+     * Konversi file gambar yang diunggah pengguna menjadi Data URI (base64)
+     * agar gambar tersimpan secara permanen 100% dan langsung tampil sama persis
+     * di semua platform (Vercel Cloud, Localhost, DB) tanpa masalah 404 atau serverless ephemeral loss.
      */
     public static function upload(UploadedFile $file): ?string
     {
         try {
-            // Free ImgBB Public API Key
-            $apiKey = env('IMGBB_API_KEY', '6d207e02198a847aa98d0a2a901485a5');
-
-            $response = Http::asMultipart()->post("https://api.imgbb.com/1/upload?key={$apiKey}", [
-                'image' => base64_encode(file_get_contents($file->getRealPath())),
-            ]);
-
-            if ($response->successful() && isset($response->json()['data']['url'])) {
-                return $response->json()['data']['url'];
+            $mime = $file->getMimeType() ?: 'image/jpeg';
+            $realPath = $file->getRealPath();
+            
+            if ($realPath && file_exists($realPath)) {
+                $contents = file_get_contents($realPath);
+                if ($contents !== false) {
+                    return 'data:' . $mime . ';base64,' . base64_encode($contents);
+                }
             }
-
-            Log::warning('ImgBB upload response unexpected: ' . $response->body());
         } catch (\Exception $e) {
-            Log::error('Gagal upload gambar ke ImgBB CDN: ' . $e->getMessage());
+            Log::error('Gagal mengonversi file gambar ke base64 Data URI: ' . $e->getMessage());
         }
 
         return null;
