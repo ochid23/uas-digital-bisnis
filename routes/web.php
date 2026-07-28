@@ -139,12 +139,12 @@ Route::get('/test-email', function (\Illuminate\Http\Request $request) {
 // ==========================================
 // Rute Otentikasi & SSO Google
 // ==========================================
-// Redirect login default mengarah ke halaman login admin/umum Anda
-Route::get('/login', function () {
-    return redirect()->route('admin.login');
-})->name('login');
+// Rute Login & Registrasi Biasa
+Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+Route::post('/register', [AuthController::class, 'register'])->name('register.post');
 
-// Rute SSO Google yang diarahkan ke GoogleController baru
+// Rute SSO Google yang diarahkan ke GoogleController
 Route::get('auth/google', [GoogleController::class, 'redirect'])->name('google.login');
 Route::get('auth/google/callback', [GoogleController::class, 'callback']);
 

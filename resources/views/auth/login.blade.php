@@ -50,6 +50,16 @@
             Continue with Google
         </a>
 
+        <!-- Link ke Halaman Registrasi -->
+        <div class="mt-8 pt-6 border-t border-zinc-800/80 text-center">
+            <p class="text-xs text-zinc-400 font-medium">
+                Belum memiliki akun?
+                <a href="{{ route('register') }}" class="text-indigo-400 hover:text-indigo-300 font-black transition ml-1 underline decoration-indigo-500/30">
+                    Daftar Akun Baru
+                </a>
+            </p>
+        </div>
+
     </div>
 </body>
 </html>
